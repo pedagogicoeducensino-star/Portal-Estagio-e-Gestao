@@ -107,7 +107,7 @@
         <div><strong>Função:</strong> Estagiário(a)</div>
       </div>
     </div>
-    <button onclick="localStorage.removeItem('sessao_estagiario_nome'); localStorage.removeItem('sessao_usuario_papel'); google.script.run.withSuccessHandler(function(url) { window.open(url + '?page=Index', '_top'); }).getUrlApp()" style="background: linear-gradient(135deg, #ff5252, #c62828); color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold; height:fit-content; margin-left:20px; box-shadow: 0 4px 10px rgba(244,67,54,0.3);"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    <button onclick="localStorage.removeItem('sessao_estagiario_nome'); localStorage.removeItem('sessao_usuario_papel'); window.open('Index.html', '_top');" style="background: linear-gradient(135deg, #ff5252, #c62828); color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold; height:fit-content; margin-left:20px; box-shadow: 0 4px 10px rgba(244,67,54,0.3);"><i class="fas fa-sign-out-alt"></i> Sair</button>
   </div>
 
   <div id="dashboard" class="secao" style="display:block; background: transparent; padding: 0; box-shadow: none; border-top: none;">
@@ -382,7 +382,24 @@
 </div>
 
 <script>
-  var ESTAGIARIO_LOGADO = "<?= nomeUsuario ?>" || "Estagiário de Educação";
+  // IMPORTANTE: COLOQUE A MESMA URL DO SEU WEB APP DO APPS SCRIPT AQUI ABAIXO
+  const API_URL = "SUA_URL_DO_WEB_APP_AQUI/exec";
+
+  // FUNÇÃO CENTRALIZADA DE COMUNICAÇÃO COM O GOOGLE
+  function chamarAPI(action, payload, onSuccess) {
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: action, payload: payload })
+    })
+    .then(res => res.json())
+    .then(data => { if (onSuccess) onSuccess(data); })
+    .catch(err => {
+      exibirAlertaGeral("Erro de conexão com o servidor. Verifique o seu acesso e tente novamente.", "Falha na Comunicação", "fa-wifi", "#f44336");
+      console.error("Erro API:", err);
+    });
+  }
+
+  var ESTAGIARIO_LOGADO = "Estagiário de Educação";
   var cacheRelatoriosRaw = [];
   var meioComunicacaoSelecionadoLig = "";
   var meioComunicacaoSelecionadoCan = "";
@@ -413,11 +430,15 @@
 
   window.addEventListener("load", function() {
     localStorage.setItem("sessao_usuario_papel", "Estagiario");
-    if (!ESTAGIARIO_LOGADO || ESTAGIARIO_LOGADO.indexOf("nomeUsuario") > -1 || ESTAGIARIO_LOGADO === "Estagiário de Educação") {
-       var cacheNome = localStorage.getItem("sessao_estagiario_nome");
-       if (cacheNome) { ESTAGIARIO_LOGADO = cacheNome; }
+    
+    // Novo método de resgate de login do GitHub (Parametros na URL)
+    var urlParams = new URLSearchParams(window.location.search);
+    var nomeParam = urlParams.get('nome');
+    if (nomeParam) {
+        ESTAGIARIO_LOGADO = nomeParam;
+        localStorage.setItem("sessao_estagiario_nome", ESTAGIARIO_LOGADO);
     } else {
-       localStorage.setItem("sessao_estagiario_nome", ESTAGIARIO_LOGADO);
+        ESTAGIARIO_LOGADO = localStorage.getItem("sessao_estagiario_nome") || "Estagiário de Educação";
     }
 
     var horaAtual = new Date().getHours();
@@ -428,10 +449,10 @@
     document.getElementById("txtIdentidadeBoasVindas").innerText = "Olá " + ESTAGIARIO_LOGADO + ", " + cumprimento + "!";
     document.getElementById("lblNome").innerText = ESTAGIARIO_LOGADO;
     
-    google.script.run.withSuccessHandler(function(dados) {
+    chamarAPI('getDadosEstagiario', { nome: ESTAGIARIO_LOGADO }, function(dados) {
       document.getElementById("lblTipo").innerText = dados.tipo || "Não cadastrado";
       document.getElementById("lblHorario").innerText = dados.horario || "Não cadastrado";
-    }).getDadosEstagiario(ESTAGIARIO_LOGADO);
+    });
 
     carregarPainelAgendaReminders();
   });
@@ -474,7 +495,7 @@
   }
 
   function carregarPainelAgendaReminders() {
-    google.script.run.withSuccessHandler(function(lista) {
+    chamarAPI('carregarReposicoesPendentes', { nomeEstagiario: ESTAGIARIO_LOGADO }, function(lista) {
       var conteiner = document.getElementById('conteinerCardsAgenda');
       if(!lista || lista.length === 0) {
         conteiner.innerHTML = '<p style="color:#999; text-align:center; width:100%; grid-column: 1 / -1; font-weight:bold; padding: 20px 0;">Nenhum agendamento pendente no momento.</p>';
@@ -504,20 +525,22 @@
 
         conteiner.innerHTML += '<div class="card-agenda">' + alertAtrasado + '<p><strong>Nome:</strong> ' + card.aluno + ' ' + tagTipo + '</p>' + '<p><strong>Ocorrência:</strong> ' + df + '</p>' + '<p style="color:#e65100; font-weight:bold;"><i class="fas fa-clock"></i> Agendado para: ' + dv + ' às ' + card.horarioVolta + '</p>' + '<div class="btn-agenda-container">' + '<button class="btn-comp" onclick="marcarPresencaAgenda(this, ' + card.indexLinha + ', \'Sim\')">Compareceu</button>' + '<button class="btn-ncomp" onclick="marcarPresencaAgenda(this, ' + card.indexLinha + ', \'Não\')">Não Compareceu</button>' + '</div>' + '</div>';
       }
-    }).carregarReposicoesPendentes(ESTAGIARIO_LOGADO);
+    });
   }
 
   function marcarPresencaAgenda(botao, linha, status) {
     botao.parentElement.parentElement.style.display = 'none';
-    google.script.run.withSuccessHandler(function() { carregarPainelAgendaReminders(); }).atualizarStatusCompareceu(linha, status);
+    chamarAPI('atualizarStatusCompareceu', { linha: linha, status: status }, function() {
+      carregarPainelAgendaReminders();
+    });
   }
 
   function atualizarMinhasMetricas() {
-    google.script.run.withSuccessHandler(function(stats) {
+    chamarAPI('carregarMetricasIndividuais', { nomeEstagiario: ESTAGIARIO_LOGADO }, function(stats) {
       document.getElementById('metaLigacoes').innerText = stats.ligacoes;
       document.getElementById('metaCancelamentos').innerText = stats.cancelamentos;
       document.getElementById('metaMateriais').innerText = stats.materiais;
-    }).carregarMetricasIndividuais(ESTAGIARIO_LOGADO);
+    });
   }
 
   function mostrarAbaGratificacoes(subAba) { mostrar('gratificacoes'); alterarSubAba(subAba); atualizarMinhasMetricas(); }
@@ -574,10 +597,10 @@
       estagiario: ESTAGIARIO_LOGADO, compareceu: (agendou === 'Sim') ? 'Pendente' : 'Não se aplica'
     };
 
-    google.script.run.withSuccessHandler(function(res) {
+    chamarAPI('salvarDados', { obj: dados }, function(res) {
       if(res && res.indexOf('Erro') > -1) { exibirAlertaGeral(res, "Erro Cadastral", "fa-times-circle", "#f44336"); return; }
       resetarFormulariosFluxo(); atualizarMinhasMetricas(); carregarPainelAgendaReminders(); mostrarModalCGD();
-    }).salvarDados(dados);
+    });
   }
 
   function selecionarMeioCan(meio) {
@@ -609,10 +632,10 @@
       estagiario: ESTAGIARIO_LOGADO, compareceu: (agendou === 'Sim') ? 'Pendente' : 'Não se aplica'
     };
 
-    google.script.run.withSuccessHandler(function(res) {
+    chamarAPI('salvarDados', { obj: dados }, function(res) {
       if(res && res.indexOf('Erro') > -1) { exibirAlertaGeral(res, "Erro Cadastral", "fa-times-circle", "#f44336"); return; }
       resetarFormulariosFluxo(); atualizarMinhasMetricas(); carregarPainelAgendaReminders(); mostrarModalCGD();
-    }).salvarDados(dados);
+    });
   }
 
   function calcularProximaTentativaMaterial(dataVal) {
@@ -633,18 +656,18 @@
       estagiario: ESTAGIARIO_LOGADO, compareceu: 'Não se aplica'
     };
 
-    google.script.run.withSuccessHandler(function(res) {
+    chamarAPI('salvarDados', { obj: dados }, function(res) {
       if(res && res.indexOf('Erro') > -1) { exibirAlertaGeral(res, "Erro Cadastral", "fa-times-circle", "#f44336"); return; }
       resetarFormulariosFluxo(); atualizarMinhasMetricas(); mostrarModalCGD();
-    }).salvarDados(dados);
+    });
   }
 
   function deletarRegistroRelatorio(linhaExcel) {
     exibirConfirmacaoGeral("⚠️ Tem certeza que deseja EXCLUIR este registro?", function() {
       document.getElementById('tabelaAbertos').innerHTML = "<tr><td colspan='9' style='text-align:center;'>Removendo...</td></tr>";
-      google.script.run.withSuccessHandler(function() {
+      chamarAPI('deletarRegistroDaPlanilha', { linha: linhaExcel }, function() {
          abrirRelatoriosEstagiario(); carregarPainelAgendaReminders(); atualizarMinhasMetricas();
-      }).deletarRegistroDaPlanilha(linhaExcel);
+      });
     });
   }
 
@@ -673,10 +696,10 @@
     }
     
     exibirConfirmacaoGeral("Deseja fechar e enviar a produção operacional do período " + mesAnoAlvo + "?\nSua tela será limpa para o próximo mês.", function() {
-      google.script.run.withSuccessHandler(function() {
+      chamarAPI('fecharMesEstagiario', { nomeEstagiario: ESTAGIARIO_LOGADO, mesAnoStr: mesAnoAlvo }, function() {
          exibirAlertaGeral("Mês operacional fechado e enviado com sucesso!", "Envio Concluído", "fa-check-circle", "#4CAF50");
          abrirRelatoriosEstagiario(); carregarPainelAgendaReminders(); atualizarMinhasMetricas();
-      }).fecharMesEstagiario(ESTAGIARIO_LOGADO, mesAnoAlvo);
+      });
     });
   }
 
@@ -684,10 +707,10 @@
     mostrar('secao-relatorios');
     document.getElementById('tabelaAbertos').innerHTML = "<tr><td colspan='9'>Carregando lançamentos...</td></tr>";
     document.getElementById('tabelaFeedbacks').innerHTML = "<tr><td colspan='9'>Carregando feedbacks...</td></tr>";
-    google.script.run.withSuccessHandler(function(dadosBase) {
+    chamarAPI('carregarRegistros', {}, function(dadosBase) {
       cacheRelatoriosRaw = dadosBase.filter(function(r) { return r[11] === ESTAGIARIO_LOGADO; });
       filtrarTabelaRelatoriosLocal();
-    }).carregarRegistros();
+    });
   }
 
   function formatarParaBR(dataStr) {
@@ -750,7 +773,7 @@
   var treinos = []; var currentSlide = 0; var subStep = 0; 
   function abrirTrilha() {
     mostrar('trilha'); document.getElementById('slideContent').innerHTML = '<p>Buscando capacitações...</p>';
-    google.script.run.withSuccessHandler(function(data) { treinos = data; currentSlide = 0; subStep = 0; renderSlide(); }).carregarTreinamentos();
+    chamarAPI('carregarTreinamentos', {}, function(data) { treinos = data; currentSlide = 0; subStep = 0; renderSlide(); });
   }
 
   function renderSlide() {
@@ -796,26 +819,26 @@
 
   function abrirGuiasEstagiario() {
     mostrar('guiasManuais'); document.getElementById('gridEbooksEstagiario').innerHTML = "<p>Buscando...</p>";
-    google.script.run.withSuccessHandler(function(guias) {
+    chamarAPI('carregarGuias', {}, function(guias) {
       if(guias.length === 0) { document.getElementById('gridEbooksEstagiario').innerHTML = "<p>Nenhum material publicado.</p>"; return; }
       var html = '';
       for(var i=0; i<guias.length; i++) {
          html += '<div class="ebook-card"><i class="fas fa-book-open"></i><h4>' + guias[i].titulo + '</h4><a href="' + guias[i].link + '" target="_blank" style="display:block; padding:11px; background:linear-gradient(135deg, #ff9800, #f57c00); color:white; text-decoration:none; border-radius:6px; font-size:0.9em; font-weight:bold;">Abrir Biblioteca</a></div>';
       }
       document.getElementById('gridEbooksEstagiario').innerHTML = html;
-    }).carregarGuias();
+    });
   }
 
   function abrirChecklist() {
     mostrar('checklistEst'); document.getElementById('areaAtivaChecklist').style.display = 'none'; document.getElementById('bloqueioChecklistAviso').style.display = 'none';
-    google.script.run.withSuccessHandler(function(jaPreencheu) {
+    chamarAPI('verificarChecklistHoje', { nomeEstagiario: ESTAGIARIO_LOGADO }, function(jaPreencheu) {
       if(jaPreencheu) document.getElementById('bloqueioChecklistAviso').style.display = 'block';
       else {
         document.getElementById('areaAtivaChecklist').style.display = 'block';
         document.getElementById('tabelaChecklistEst').innerHTML = "<tr><td>Construindo matriz...</td></tr>";
-        google.script.run.withSuccessHandler(renderChecklist).carregarPerguntasChecklist();
+        chamarAPI('carregarPerguntasChecklist', {}, renderChecklist);
       }
-    }).verificarChecklistHoje(ESTAGIARIO_LOGADO);
+    });
   }
 
   function renderChecklist(perguntas) {
@@ -866,10 +889,10 @@
     
     var detalhesObj = { pctSimAusente: pctSimAusente, pctNao: pctNao, naoFeitos: itensNaoFeitos, totalSim: totalSim, totalNao: totalNao, totalAusente: totalAusente };
 
-    google.script.run.withSuccessHandler(function() { 
+    chamarAPI('salvarRespostaChecklist', { respostas: { nome: ESTAGIARIO_LOGADO, percentual: pctCalculado, detalhes: JSON.stringify(detalhesObj) } }, function() { 
        exibirAlertaGeral('Checklist validado e transmitido com absoluto êxito!', 'Sucesso', 'fa-check-circle', '#4CAF50');
        document.getElementById('senhaSup').value = ''; mostrar('dashboard'); 
-    }).salvarRespostaChecklist({ nome: ESTAGIARIO_LOGADO, percentual: pctCalculado, detalhes: JSON.stringify(detalhesObj) });
+    });
   }
 </script>
 </body>
