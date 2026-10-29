@@ -619,19 +619,29 @@
  }
  
  // --- CADASTRO DE ESTAGIÁRIOS ---
- function salvarEstag() {
-  var inputsDias = document.querySelectorAll('.cad_dias:checked'); var arrDias = []; 
+function salvarEstag() {
+  var inputsDias = document.querySelectorAll('.cad_dias:checked'); 
+  var arrDias = []; 
   inputsDias.forEach(function(d) { arrDias.push(d.value); });
   var nomeAntigoEditando = document.getElementById('estagiario_editando').value;
 
+  // Limpa espaços invisíveis antes de salvar
+  var senhaTratada = document.getElementById('cad_senha').value.trim();
+  var nomeTratado = document.getElementById('cad_nome').value.trim();
+
   var obj = {
-    nome: document.getElementById('cad_nome').value, senha: document.getElementById('cad_senha').value,
-    tipo: document.getElementById('cad_tipo').value, inicio: document.getElementById('cad_inicio').value,
-    fim: document.getElementById('cad_fim').value, totalHoras: document.getElementById('cad_horas').value,
-    dias: arrDias, categoria: document.getElementById('cad_categoria').value
+    nome: nomeTratado, 
+    senha: senhaTratada,
+    tipo: document.getElementById('cad_tipo').value, 
+    inicio: document.getElementById('cad_inicio').value,
+    fim: document.getElementById('cad_fim').value, 
+    totalHoras: document.getElementById('cad_horas').value,
+    dias: arrDias, 
+    categoria: document.getElementById('cad_categoria').value
   };
+  
   if(!obj.nome || !obj.senha) return exibirAlertaGeral("Nome e Senha são obrigatórios!", "Falta Dados");
- 
+
   if(nomeAntigoEditando) {
       chamarAPI('atualizarEstagiario', { nomeAntigo: nomeAntigoEditando, obj: obj }, function() {
         exibirAlertaGeral("Dados do estagiário atualizados com sucesso!", "Atualizado", "fa-check-circle", "#4CAF50");
@@ -643,7 +653,7 @@
         cancelarEdicaoEstag(); carregarListaEstagiarios();
       });
   }
- }
+}
  
  function carregarListaEstagiarios() {
   chamarAPI('carregarEstagiarios', {}, function(ests) {
