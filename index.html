@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <title>Portal de Estágio e Gestão - Educ Centro de Ensino</title>
+<meta charset="UTF-8">
 <meta name="description" content="Portal de acompanhamento e gestão de estágio da Educ Centro de Ensino.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta property="og:title" content="Portal de Estágio e Gestão - Educ Centro de Ensino">
 <meta property="og:description" content="Acesse o sistema de acompanhamento operacional, treinamentos e relatórios.">
 <meta property="og:type" content="website">
@@ -11,52 +13,202 @@
 <base target="_top">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
+  /* PALETA DE CORES: Creme, Cinza, Laranja, Dourado */
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0; padding: 0;
-    background: linear-gradient(135deg, #2c3e50, #000000);
-    height: 100vh; display: flex; justify-content: center; align-items: center;
+    margin: 0; 
+    padding: 0;
+    /* Fundo dinâmico e agradável misturando Creme e Cinza claro */
+    background: linear-gradient(135deg, #fdfbf7 0%, #e0e0e0 100%);
+    height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
   }
+  
   .login-container {
-    background: white; padding: 40px; border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    width: 100%; max-width: 400px; text-align: center;
-    border-top: 8px solid #FF9800;
+    background: white; 
+    padding: 45px 40px; 
+    border-radius: 24px;
+    /* Sombra mais suave e elegante */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.05);
+    width: 100%; 
+    max-width: 420px; 
+    text-align: center;
+    /* Borda superior mesclando Laranja e Dourado */
+    border-top: 6px solid #FF9800;
+    position: relative;
+    box-sizing: border-box;
+    margin: 20px;
   }
-  .login-container h1 { color: #333; margin-bottom: 5px; font-size: 2em; }
-  .login-container p { color: #666; margin-bottom: 30px; }
-  .input-group { margin-bottom: 20px; text-align: left; }
-  .input-group label { font-weight: bold; color: #424242; font-size: 0.9em; display: block; margin-bottom: 8px; }
-  .input-group select, .input-group input {
-    width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px;
-    font-size: 1em; box-sizing: border-box; transition: 0.3s;
+  
+  .icon-box {
+    background: linear-gradient(135deg, #FFC107, #FF9800); 
+    width: 85px; 
+    height: 85px; 
+    border-radius: 50%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    margin: 0 auto 20px auto; 
+    box-shadow: 0 8px 20px rgba(255, 152, 0, 0.35);
+    border: 4px solid #fffdf9;
   }
-  .input-group select:focus, .input-group input:focus { border-color: #FF9800; outline: none; box-shadow: 0 0 10px rgba(255,152,0,0.2); }
-  .btn-login {
-    background: linear-gradient(135deg, #FF9800, #F57C00);
-    color: white; border: none; padding: 15px; width: 100%;
-    border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); transition: all 0.3s;
-  }
-  .btn-login:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255, 152, 0, 0.6); }
 
-  /* MODAL DO LOGIN */
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(5px); }
-  .modal-box { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); border-top: 8px solid #f44336; animation: popIn 0.3s ease-out; }
-  .modal-box i { font-size: 50px; color: #f44336; margin-bottom: 15px; }
-  .modal-box h2 { margin: 0 0 10px 0; color: #333; }
-  .modal-box button { background: linear-gradient(135deg, #f44336, #d32f2f); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: bold; margin-top: 15px; }
-  @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .login-container h1 { 
+    color: #424242; /* Cinza escuro profissional */
+    margin: 0 0 5px 0; 
+    font-size: 1.8em; 
+    font-weight: 800;
+  }
+  
+  .login-container p { 
+    color: #757575; /* Cinza médio */
+    margin: 0 0 35px 0; 
+    font-size: 1.05em;
+  }
+  
+  .input-group { 
+    margin-bottom: 22px; 
+    text-align: left; 
+  }
+  
+  .input-group label { 
+    font-weight: 600; 
+    color: #616161; 
+    font-size: 0.9em; 
+    display: block; 
+    margin-bottom: 8px; 
+  }
+  
+  .input-group select, .input-group input {
+    width: 100%; 
+    padding: 14px; 
+    border: 2px solid #eeeeee; 
+    background: #fcfcfc;
+    border-radius: 10px;
+    font-size: 1em; 
+    box-sizing: border-box; 
+    transition: all 0.3s ease;
+    color: #333;
+  }
+  
+  /* Efeito de foco Dourado/Laranja */
+  .input-group select:focus, .input-group input:focus { 
+    border-color: #FFC107; 
+    background: #ffffff;
+    outline: none; 
+    box-shadow: 0 0 0 4px rgba(255,193,7,0.15); 
+  }
+  
+  .btn-login {
+    /* Gradiente dinâmico Laranja para Dourado */
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white; 
+    border: none; 
+    padding: 16px; 
+    width: 100%;
+    border-radius: 10px; 
+    font-size: 1.15em; 
+    font-weight: bold; 
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(245, 124, 0, 0.3); 
+    transition: all 0.3s ease;
+    margin-top: 10px;
+  }
+  
+  .btn-login:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 10px 25px rgba(245, 124, 0, 0.45); 
+    background: linear-gradient(135deg, #F57C00, #E65100);
+  }
+
+  .btn-login:disabled {
+    background: #bdbdbd;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* MODAL DE ERRO CUSTOMIZADO (ALERTA MASSA) */
+  .modal-overlay { 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(44, 62, 80, 0.7); /* Fundo escurecido sofisticado */
+    display: none; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 9999; 
+    backdrop-filter: blur(8px); 
+  }
+  
+  .modal-box { 
+    background: white; 
+    padding: 35px; 
+    border-radius: 20px; 
+    text-align: center; 
+    max-width: 380px; 
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25); 
+    border-top: 8px solid #f44336; 
+    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; 
+  }
+  
+  .modal-box i { 
+    font-size: 55px; 
+    color: #f44336; 
+    margin-bottom: 20px; 
+  }
+  
+  .modal-box h2 { 
+    margin: 0 0 12px 0; 
+    color: #424242; 
+    font-size: 1.6em;
+  }
+  
+  .modal-box p {
+    color: #757575;
+    font-size: 1.05em;
+    line-height: 1.5;
+    margin-bottom: 25px;
+  }
+  
+  .modal-box button { 
+    background: linear-gradient(135deg, #f44336, #d32f2f); 
+    color: white; 
+    border: none; 
+    padding: 14px 35px; 
+    border-radius: 10px; 
+    font-size: 1.05em; 
+    cursor: pointer; 
+    font-weight: bold; 
+    transition: 0.2s;
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+  }
+  
+  .modal-box button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+  }
+  
+  /* Animação elástica "massa" pro modal de erro */
+  @keyframes bounceIn { 
+    0% { transform: scale(0.3); opacity: 0; } 
+    50% { transform: scale(1.05); opacity: 1; } 
+    70% { transform: scale(0.95); } 
+    100% { transform: scale(1); opacity: 1; } 
+  }
 </style>
 </head>
 <body>
 
 <div class="login-container">
-  <div style="background: linear-gradient(135deg, #FFC107, #FF9800); width: 80px; height: 80px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px auto; box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);">
-    <i class="fas fa-graduation-cap" style="font-size: 35px; color: white;"></i>
+  <div class="icon-box">
+    <i class="fas fa-graduation-cap" style="font-size: 38px; color: white;"></i>
   </div>
-  <h1>Portal de Estágio e Gestão</h1>
-  <p>Educ Centro de Ensino</p>
+  <h1>Portal de Estágio</h1>
+  <p>Gestão Educ Centro de Ensino</p>
 
   <div class="input-group">
     <label>Perfil de Acesso</label>
@@ -68,17 +220,18 @@
   
   <div class="input-group">
     <label>Credencial</label>
-    <input type="password" id="login_senha" placeholder="Digite sua senha">
+    <input type="password" id="login_senha" placeholder="Digite sua senha de acesso">
   </div>
   
   <button class="btn-login" onclick="fazerLogin()" id="btnAcesso"><i class="fas fa-sign-in-alt"></i> Entrar no Sistema</button>
 </div>
 
+<!-- Modal Customizado de Alerta -->
 <div class="modal-overlay" id="modalErro">
   <div class="modal-box">
     <i class="fas fa-exclamation-triangle"></i>
     <h2>Acesso Negado</h2>
-    <p id="msgErro" style="color:#666;"></p>
+    <p id="msgErro"></p>
     <button onclick="document.getElementById('modalErro').style.display='none'">Tentar Novamente</button>
   </div>
 </div>
@@ -86,6 +239,14 @@
 <script>
   // IMPORTANTE: COLOQUE A MESMA URL DO SEU WEB APP AQUI TAMBÉM
   const API_URL = "https://script.google.com/macros/s/AKfycbwVDjB7rncrcHzEwXJ8rZ9v6gEPAoZgvZn-Nvjpmxlz8_d0J8B4wRcvTPLsJ0uJ4AU/exec";
+
+  // ACIONAR O BOTÃO DE LOGIN APERTANDO O "ENTER"
+  document.getElementById("login_senha").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Evita que a página recarregue
+      fazerLogin();
+    }
+  });
 
   function chamarAPI(action, payload, onSuccess) {
     fetch(API_URL, {
@@ -95,7 +256,7 @@
     .then(res => res.json())
     .then(data => { if (onSuccess) onSuccess(data); })
     .catch(err => {
-      mostrarErro("Erro de conexão com o servidor. Verifique o seu acesso e tente novamente.");
+      mostrarErro("Erro de conexão com o servidor. Verifique a sua internet e tente novamente.");
       var btn = document.getElementById('btnAcesso');
       btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar no Sistema';
       btn.disabled = false;
@@ -113,9 +274,9 @@
     var senha = document.getElementById("login_senha").value.trim();
     var tipo = document.getElementById("login_tipo").value;
     
-    if(!senha) return mostrarErro("Por favor, digite sua credencial de acesso!");
+    if(!senha) return mostrarErro("Por favor, digite sua credencial para acessar a plataforma!");
     
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Autenticando...';
     btn.disabled = true;
 
     if(tipo === "Coordenacao") {
@@ -123,7 +284,7 @@
            // Redireciona diretamente para o arquivo local
            window.open("Coordenacao.html", "_top");
        } else {
-           mostrarErro("Credencial de Coordenação incorreta!");
+           mostrarErro("Credencial de Coordenação incorreta! Verifique os dados digitados.");
            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar no Sistema';
            btn.disabled = false;
        }
@@ -134,7 +295,7 @@
                // Redireciona para o arquivo local passando o nome na URL
                window.open("Estagiario.html?nome=" + encodeURIComponent(res.nome), "_top");
            } else {
-               mostrarErro(res.msg || "Erro na validação.");
+               mostrarErro(res.msg || "Não foi possível validar seus dados no momento.");
                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar no Sistema';
                btn.disabled = false;
            }
