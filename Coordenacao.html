@@ -661,17 +661,40 @@
   });
  }
  
- function editarEst(nome) {
-    var est = cacheEstagiarios.find(function(e) { return e.nome === nome; }); if(!est) return;
-    document.getElementById('estagiario_editando').value = nome;
-    document.getElementById('cad_nome').value = est.nome;
-    document.getElementById('tituloFormEstagiario').innerText = "Editando Dados de: " + nome;
-    document.getElementById('btnSalvarEstag').innerText = "💾 Atualizar Cadastro";
-    document.getElementById('btnSalvarEstag').style.background = "#ff9800";
-    document.getElementById('btnCancelarEdicaoEstag').style.display = "block";
-    window.scrollTo(0,0);
-    exibirAlertaGeral("Modo de edição ativado. Preencha a senha e os horários novamente para atualizar o cadastro corporativo.", "Edição Ativada", "fa-edit", "#ff9800");
- }
+function editarEst(nome) {
+  var est = cacheEstagiarios.find(function(e) { return e.nome === nome; }); 
+  if(!est) return;
+  
+  // Preenche nome e ID oculto
+  document.getElementById('estagiario_editando').value = nome;
+  document.getElementById('cad_nome').value = est.nome || '';
+  
+  // Resgata os demais campos para não precisarem ser digitados novamente
+  document.getElementById('cad_senha').value = est.senha || '';
+  document.getElementById('cad_tipo').value = est.tipo || 'Educação';
+  document.getElementById('cad_inicio').value = est.inicio || '';
+  document.getElementById('cad_fim').value = est.fim || '';
+  document.getElementById('cad_horas').value = est.totalHoras || '';
+  document.getElementById('cad_categoria').value = est.categoria || 'Remunerado';
+  
+  // Resgata os dias da semana marcados
+  document.querySelectorAll('.cad_dias').forEach(function(cb) { cb.checked = false; }); // Limpa antes
+  if (est.dias) {
+    var diasArray = Array.isArray(est.dias) ? est.dias : String(est.dias).split(',').map(function(d) { return d.trim(); });
+    document.querySelectorAll('.cad_dias').forEach(function(cb) {
+      if (diasArray.includes(cb.value)) cb.checked = true;
+    });
+  }
+
+  // Estilização do formulário em modo de edição
+  document.getElementById('tituloFormEstagiario').innerText = "Editando Dados de: " + nome;
+  document.getElementById('btnSalvarEstag').innerText = "💾 Atualizar Cadastro";
+  document.getElementById('btnSalvarEstag').style.background = "#ff9800";
+  document.getElementById('btnCancelarEdicaoEstag').style.display = "block";
+  window.scrollTo(0,0);
+  
+  exibirAlertaGeral("Modo de edição ativado. Os dados foram carregados para alteração.", "Edição Ativada", "fa-edit", "#ff9800");
+}
 
  function cancelarEdicaoEstag() {
     document.getElementById('estagiario_editando').value = "";
