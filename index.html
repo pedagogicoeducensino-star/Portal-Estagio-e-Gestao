@@ -110,7 +110,7 @@
 
   function fazerLogin() {
     var btn = document.getElementById('btnAcesso');
-    var senha = document.getElementById("login_senha").value;
+    var senha = document.getElementById("login_senha").value.trim();
     var tipo = document.getElementById("login_tipo").value;
     
     if(!senha) return mostrarErro("Por favor, digite sua credencial de acesso!");
