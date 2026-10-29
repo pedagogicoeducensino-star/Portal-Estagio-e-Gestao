@@ -95,7 +95,7 @@
  
  /* TABELAS */
  table { width: 100%; border-collapse: collapse; margin-top: 20px; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
- th { background: linear-gradient(135deg, #424242, #212121); color: #FFC107; padding: 15px 12px; text-align: left; font-size: 0.95em; }
+ th { background: linear-gradient(135deg, #FFC107, #FF9800); color: white; padding: 15px 12px; text-align: left; font-size: 0.95em; }
  td { padding: 15px 12px; border-bottom: 1px solid #eeeeee; font-size: 0.9em; vertical-align: middle; background: white; }
  tr:hover td { background: #fafafa; }
  
@@ -281,7 +281,7 @@
     </select>
  
     <div style="display:flex; gap:15px; margin-top: 10px;">
-      <button style="background: linear-gradient(135deg, #f44336, #d32f2f);" id="btnSalvarEstag" onclick="salvarEstag()"><i class="fas fa-save"></i> Salvar Estagiário</button>
+      <button id="btnSalvarEstag" onclick="salvarEstag()"><i class="fas fa-save"></i> Salvar Estagiário</button>
       <button class="btn-voltar" style="margin-top:0; display:none;" id="btnCancelarEdicaoEstag" onclick="cancelarEdicaoEstag()"><i class="fas fa-times"></i> Cancelar</button>
     </div>
   </div>
@@ -412,7 +412,7 @@
     <tr id="linhaVaziaRascunho"><td colspan="4" style="text-align:center; color:#999; padding: 20px;">Nenhuma atividade no rascunho.</td></tr>
   </table>
  
-  <button style="margin-top:30px; background: linear-gradient(135deg, #4CAF50, #388E3C);" onclick="salvarRascunhoChecklist()"><i class="fas fa-cloud-upload-alt"></i> Publicar Checklist no Portal</button>
+  <button style="margin-top:30px;" onclick="salvarRascunhoChecklist()"><i class="fas fa-cloud-upload-alt"></i> Publicar Checklist no Portal</button>
  
   <div style="margin-top:45px; border-top:2px solid #eee; padding-top:25px;">
     <h3>Tarefas Ativas no Sistema</h3>
@@ -770,7 +770,7 @@
     document.getElementById('estagiario_editando').value = "";
     document.getElementById('tituloFormEstagiario').innerText = "Cadastrar Novo Estagiário";
     document.getElementById('btnSalvarEstag').innerHTML = "<i class='fas fa-save'></i> Salvar Estagiário";
-    document.getElementById('btnSalvarEstag').style.background = "linear-gradient(135deg, #f44336, #d32f2f)";
+    document.getElementById('btnSalvarEstag').style.background = "";
     document.getElementById('btnCancelarEdicaoEstag').style.display = "none";
     document.querySelectorAll('#sec-cadastro-est input').forEach(function(i) { if(i.type==='checkbox') i.checked=false; else if (i.type !== 'hidden') i.value=''; });
  }
