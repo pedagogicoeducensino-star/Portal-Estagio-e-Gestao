@@ -767,27 +767,18 @@
     document.getElementById('tabelaAbertos').innerHTML = htmlAbertos; document.getElementById('tabelaFeedbacks').innerHTML = htmlFechados;
   }
 
-// --- SISTEMA INTELIGENTE DE PROGRESSO DA TRILHA ---
+// --- SISTEMA LMS AVANÇADO (TRILHA DO SABER) ---
   var treinos = []; var currentSlide = 0; var subStep = 0; 
-  
-  function isTreinoConcluido(titulo) {
-    var key = "treinos_concluidos_" + ESTAGIARIO_LOGADO;
-    var concluidos = JSON.parse(localStorage.getItem(key) || "[]");
-    return concluidos.indexOf(titulo) > -1;
-  }
-
-  function marcarTreinoConcluido(titulo) {
-    var key = "treinos_concluidos_" + ESTAGIARIO_LOGADO;
-    var concluidos = JSON.parse(localStorage.getItem(key) || "[]");
-    if(concluidos.indexOf(titulo) === -1) {
-        concluidos.push(titulo);
-        localStorage.setItem(key, JSON.stringify(concluidos));
-    }
-  }
+  var acertosModulo = 0; var treinosFeitosBackend = [];
 
   function abrirTrilha() {
-    mostrar('trilha'); document.getElementById('slideContent').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Buscando capacitações...</p>';
-    chamarAPI('carregarTreinamentos', {}, function(data) { treinos = data; currentSlide = 0; subStep = 0; renderSlide(); });
+    mostrar('trilha'); document.getElementById('slideContent').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Buscando capacitações e notas...</p>';
+    chamarAPI('verificarTreinosConcluidos', { nomeEstagiario: ESTAGIARIO_LOGADO }, function(feitos) {
+      treinosFeitosBackend = feitos || [];
+      chamarAPI('carregarTreinamentos', {}, function(data) { 
+        treinos = data; currentSlide = 0; subStep = 0; acertosModulo = 0; renderSlide(); 
+      });
+    });
   }
 
   function renderSlide() {
@@ -796,29 +787,22 @@
     document.getElementById('indicadorGlobalTrilha').innerText = `🎥 Módulo ${currentSlide + 1} de ${treinos.length} | Progresso Geral: ${pctGlobal}%`;
 
     var videoId = ""; var m = t.url.match(/(?:v=|youtu\.be\/|embed\/)([^&]+)/); if(m) videoId = m[1]; else videoId = t.url.split('/').pop();
-    var embedUrl = "https://www.youtube.com/embed/" + videoId;
-    
-    // Verifica se já foi feito para exibir o selo de concluído
-    var concluido = isTreinoConcluido(t.titulo);
-    var badgeConcluido = concluido ? '<span style="background:#4CAF50; color:white; font-size:0.6em; padding:6px 12px; border-radius:8px; vertical-align:middle; margin-left:15px; box-shadow: 0 2px 5px rgba(76,175,80,0.3);"><i class="fas fa-check-double"></i> Concluído</span>' : '';
+    var concluido = treinosFeitosBackend.indexOf(t.titulo) > -1;
+    var badgeConcluido = concluido ? '<span style="background:#4CAF50; color:white; font-size:0.5em; padding:6px 12px; border-radius:8px; vertical-align:middle; margin-left:15px;"><i class="fas fa-check-double"></i> Concluído</span>' : '';
 
     var html = "<h3 style='color:#424242; font-size:1.4em; display:flex; justify-content:center; align-items:center;'>" + t.titulo + badgeConcluido + "</h3>";
     
     if (subStep === 0) { 
-      html += `<div class="video-container"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`; 
-      
-      // Se já foi concluído, pula as questões e exibe um botão direto para o próximo
+      html += `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; 
       if (concluido) {
           var textBtn = (currentSlide === treinos.length - 1) ? "<i class='fas fa-flag-checkered'></i> Finalizar Trilha" : "Avançar para Próximo Vídeo ➔";
-          html += `<button class="action-btn" style="max-width:350px; margin: 15px auto; display:block; background: linear-gradient(135deg, #4CAF50, #388E3C); box-shadow: 0 4px 15px rgba(76,175,80,0.3);" onclick="mudarSlide(1)">${textBtn}</button>`;
+          html += `<button class="action-btn" style="max-width:350px; margin: 15px auto; display:block; background: linear-gradient(135deg, #4CAF50, #388E3C);" onclick="mudarSlide(1)">${textBtn}</button>`;
       } else {
-          // Se ainda não foi feito, exibe o botão de ir para as questões
           if (t.questoes && t.questoes.length > 0) {
-             html += `<button class="action-btn" style="max-width:350px; margin: 15px auto; display:block;" onclick="mudarSlide(1)">Responder Questões ➔</button>`;
+             html += `<button class="action-btn" style="max-width:350px; margin: 15px auto; display:block;" onclick="mudarSlide(1)">Responder Questões (Gera Nota) ➔</button>`;
           } else {
-             // Caso a coordenação suba um vídeo sem questões, apenas avança e já marca como feito
              var textBtn = (currentSlide === treinos.length - 1) ? "<i class='fas fa-flag-checkered'></i> Finalizar Trilha" : "Avançar para Próximo Vídeo ➔";
-             html += `<button class="action-btn" style="max-width:350px; margin: 15px auto; display:block;" onclick="marcarTreinoConcluido('${t.titulo}'); mudarSlide(1);">${textBtn}</button>`;
+             html += `<button class="action-btn" style="max-width:350px; margin: 15px auto; display:block;" onclick="salvarNota(0,0,'${t.titulo}'); mudarSlide(1);">${textBtn}</button>`;
           }
       }
     } 
@@ -829,21 +813,44 @@
       if(q.b) html += `<label class="alternativa"><input type="radio" name="q_bloco" value="B"> B) ${q.b}</label>`;
       if(q.c) html += `<label class="alternativa"><input type="radio" name="q_bloco" value="C"> C) ${q.c}</label>`;
       if(q.d) html += `<label class="alternativa"><input type="radio" name="q_bloco" value="D"> D) ${q.d}</label>`;
-      var textB = (qIdx === t.questoes.length - 1) ? "<i class='fas fa-check'></i> Confirmar e Concluir Módulo" : "Avançar Questão ➔";
-      html += `<button class="action-btn" style="margin-top:25px;" onclick="confirmarQuestaoBloco()">${textB}</button></div>`;
+      if(q.e) html += `<label class="alternativa"><input type="radio" name="q_bloco" value="E"> E) ${q.e}</label>`;
+      var textB = (qIdx === t.questoes.length - 1) ? "<i class='fas fa-check'></i> Confirmar e Salvar Nota" : "Avançar Questão ➔";
+      html += `<button class="action-btn" style="margin-top:25px;" onclick="confirmarQuestaoBloco('${q.correta}')">${textB}</button></div>`;
     }
     document.getElementById('slideContent').innerHTML = html;
   }
 
-  function confirmarQuestaoBloco() {
-    if(!document.querySelector('input[name="q_bloco"]:checked')) return exibirAlertaGeral("Selecione uma alternativa antes de continuar!", "Campo Obrigatório");
+  function confirmarQuestaoBloco(correta) {
+    var opcao = document.querySelector('input[name="q_bloco"]:checked');
+    if(!opcao) return exibirAlertaGeral("Selecione uma alternativa antes de continuar!", "Campo Obrigatório");
+    if(opcao.value === correta) acertosModulo++;
     
     var t = treinos[currentSlide];
-    // Se respondeu a última questão do módulo, salva o progresso do estagiário!
     if (subStep === t.questoes.length) {
-        marcarTreinoConcluido(t.titulo);
+        salvarNota(acertosModulo, t.questoes.length, t.titulo);
+        acertosModulo = 0; 
     }
     mudarSlide(1);
+  }
+
+  function salvarNota(acertos, total, titulo) {
+      var notaCalc = (total > 0) ? ((acertos / total) * 10).toFixed(1) : "10.0";
+      chamarAPI('salvarResultadoTreinamento', { obj: { estagiario: ESTAGIARIO_LOGADO, modulo: titulo, nota: notaCalc, acertos: acertos, total: total } }, function() {
+          treinosFeitosBackend.push(titulo);
+      });
+  }
+
+  function mudarSlide(dir) {
+    if(treinos.length === 0) return; var t = treinos[currentSlide];
+    var concluido = treinosFeitosBackend.indexOf(t.titulo) > -1;
+    if (dir === 1) { 
+        if (concluido) { currentSlide++; subStep = 0; } else { if (subStep < t.questoes.length) subStep++; else { currentSlide++; subStep = 0; } }
+    } else { 
+        if (concluido) { currentSlide--; subStep = 0; } else { if (subStep > 0) subStep--; else { currentSlide--; subStep = treinos[currentSlide] ? treinos[currentSlide].questoes.length : 0; } }
+    }
+    if(currentSlide < 0) { currentSlide = 0; subStep = 0; }
+    if(currentSlide >= treinos.length) { exibirAlertaGeral("Você concluiu ou revisou todos os módulos da Trilha do Saber!", "Trilha Finalizada", "fa-trophy", "#FFC107"); mostrar('dashboard'); return; }
+    renderSlide();
   }
 
   function mudarSlide(dir) {
