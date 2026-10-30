@@ -340,6 +340,16 @@
  
   <h3>Treinamentos Ativos</h3>
   <div id="listaTreinamentosGestao"><i class="fas fa-spinner fa-spin"></i> Carregando lista...</div>
+ 
+  <div style="margin-top:45px; border-top:2px solid #eee; padding-top:25px;">
+    <h3><i class="fas fa-chart-bar" style="color:#FF9800;"></i> Boletim de Treinamentos (Notas dos Estagiários)</h3>
+    <div style="overflow-x:auto;">
+      <table id="tabelaBoletim">
+        <tr><th>Data</th><th>Estagiário</th><th>Módulo</th><th>Nota Final</th><th>Acertos</th><th>Ação</th></tr>
+        <tr><td colspan="6" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Carregando boletim...</td></tr>
+      </table>
+    </div>
+  </div>
   
   <button class="btn-voltar" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
  </div>
@@ -511,7 +521,7 @@
   if(id === 'dashboard') { document.getElementById('dashboard').style.display = 'block'; carregarPainelNotificacoesSilencioso(); } 
   else { document.getElementById(id).style.display = 'block'; }
   if(id === 'sec-cadastro-est') carregarListaEstagiarios();
-  if(id === 'sec-treinamento') { treinosLimparForm(); carregarTreinosGestao(); }
+ if(id === 'sec-treinamento') { treinosLimparForm(); carregarTreinosGestao(); carregarBoletimTreinamentos(); }
   if(id === 'sec-guias') carregarGuiasGestao();
   if(id === 'sec-checklist') carregarChecklistsAtivos();
  }
@@ -891,6 +901,30 @@
   exibirConfirmacaoGeral('Deseja excluir o bloco "' + titulo + '"?', function() {
     chamarAPI('excluirTreinamento', { titulo: titulo }, function() { 
         exibirAlertaGeral('Treinamento removido!', 'Sucesso', 'fa-check-circle', '#4CAF50'); carregarTreinosGestao(); 
+    });
+  });
+ }
+
+ function carregarBoletimTreinamentos() {
+  chamarAPI('carregarResultadosTreinamentos', {}, function(res) {
+    var tbl = document.getElementById('tabelaBoletim');
+    tbl.innerHTML = '<tr><th>Data</th><th>Estagiário</th><th>Módulo</th><th>Nota Final</th><th>Acertos</th><th>Ação</th></tr>';
+    if(res.length === 0) { tbl.innerHTML += '<tr><td colspan="6" style="text-align:center;">Nenhum treinamento realizado ainda.</td></tr>'; return; }
+    
+    res.reverse().forEach(function(r) {
+      var d = r.data; if(d.indexOf('T') > -1) d = d.split('T')[0].split('-').reverse().join('/');
+      var badgeNota = parseFloat(r.nota) >= 7 ? `<span style="color:#4CAF50; font-weight:bold;">${r.nota}</span>` : `<span style="color:#f44336; font-weight:bold;">${r.nota}</span>`;
+      
+      tbl.innerHTML += `<tr><td>${d}</td><td><strong>${r.estagiario}</strong></td><td>${r.modulo}</td><td>${badgeNota}</td><td>${r.acertos}</td><td style="text-align:center;"><button class="btn-acao" style="background:#f44336;" title="Forçar Refazer" onclick="resetarProgresso('${r.estagiario}', '${r.modulo}')"><i class="fas fa-redo"></i> Refazer</button></td></tr>`;
+    });
+  });
+ }
+
+ function resetarProgresso(estagiario, modulo) {
+  exibirConfirmacaoGeral(`Deseja apagar a nota e forçar ${estagiario} a refazer o módulo "${modulo}"?`, function() {
+    chamarAPI('resetarTreinamento', { nomeEstagiario: estagiario, modulo: modulo }, function() {
+      exibirAlertaGeral("Progresso apagado. O aluno deverá refazer o módulo.", "Reset Concluído", "fa-check", "#4CAF50");
+      carregarBoletimTreinamentos();
     });
   });
  }
