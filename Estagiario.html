@@ -51,6 +51,29 @@
  }
  .btn-sair:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244,67,54,0.4); }
 
+ /* NOVO BOTÃO DE VOLTAR NO TOPO */
+ .btn-voltar-topo {
+     background: #fffaf0;
+     color: #FF9800;
+     border: 1px solid #ffe0b2;
+     padding: 8px 16px;
+     border-radius: 20px;
+     cursor: pointer;
+     font-weight: bold;
+     font-size: 0.9em;
+     margin-bottom: 20px;
+     display: inline-flex;
+     align-items: center;
+     gap: 6px;
+     transition: 0.3s;
+     box-shadow: 0 2px 5px rgba(255,152,0,0.1);
+ }
+ .btn-voltar-topo:hover {
+     background: #FF9800;
+     color: white;
+     transform: translateY(-2px);
+ }
+
  /* CARDS E MENSAGENS */
  .welcome-box { 
     background: white; padding: 25px; border-radius: 16px; 
@@ -221,6 +244,7 @@
 
   <!-- ABA CONTROLE DE GRATIFICAÇÕES -->
   <div id="gratificacoes" class="secao">
+    <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
     <h2><i class="fas fa-trophy" style="color:#FFC107;"></i> Lançamentos Operacionais</h2>
     <p style="color:#757575; margin-top:0; margin-bottom: 25px; font-size:1.05em;">Estas métricas zeram automaticamente após o envio mensal na aba "Meus Relatórios".</p>
     
@@ -344,12 +368,11 @@
       <input type="text" id="m_proxima" readonly style="background:#f5f5f5; font-weight:bold; color:#F57C00;">
       <button class="action-btn" onclick="enviarFluxoMateriais()"><i class="fas fa-paper-plane"></i> Registrar Material</button>
     </div>
-
-    <button class="back-btn" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
   </div>
 
   <!-- ABA MEUS RELATÓRIOS -->
   <div id="secao-relatorios" class="secao">
+    <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
     <div style="display: flex; gap: 15px; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
       <h2 style="margin:0; border:none; padding:0;"><i class="fas fa-chart-line" style="color:#FFC107;"></i> Meus Relatórios</h2>
       <button onclick="solicitarFechamentoMensalOperacional()" class="action-btn" style="width: auto; margin:0; padding:12px 25px;"><i class="fas fa-lock"></i> Lançar Gratificações do Mês</button>
@@ -384,28 +407,27 @@
     <div style="overflow-x:auto; background: white;">
       <table class="rel-table" id="tabelaFeedbacks" style="min-width: 900px;"></table>
     </div>
-
-    <button class="back-btn" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
   </div>
 
   <!-- TRILHA DO SABER -->
   <div id="trilha" class="secao">
+    <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
     <h2><i class="fas fa-graduation-cap" style="color:#FFC107;"></i> Trilha do Saber</h2>
     <div id="indicadorGlobalTrilha" style="font-weight:bold; color:#FF9800; margin-bottom:20px; font-size:1.1em;"></div>
     <div id="slideContent" class="slide-container"><i class="fas fa-spinner fa-spin"></i> Buscando conteúdo...</div>
     <div class="nav-arrows"><i class="fas fa-arrow-circle-left" onclick="mudarSlide(-1)"></i><i class="fas fa-arrow-circle-right" onclick="mudarSlide(1)"></i></div>
-    <button class="back-btn" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
   </div>
 
   <!-- GUIAS -->
   <div id="guiasManuais" class="secao">
+    <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
     <h2><i class="fas fa-book" style="color:#757575;"></i> Guias e Manuais de Apoio</h2>
     <div id="gridEbooksEstagiario" class="grid-ebooks"><i class="fas fa-spinner fa-spin"></i> Acessando biblioteca...</div>
-    <button class="back-btn" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
   </div>
 
   <!-- CHECKLIST -->
   <div id="checklistEst" class="secao">
+    <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
     <h2><i class="fas fa-clipboard-list" style="color:#e65100;"></i> Auditoria de Rotina (Checklist)</h2>
     
     <div id="bloqueioChecklistAviso" style="display:none; background:#fffaf0; color:#FF9800; padding:25px; border-radius:12px; font-weight:bold; text-align:center; border: 2px solid #FFC107; font-size:1.1em;">
@@ -424,7 +446,6 @@
         <button class="action-btn" style="max-width:350px;" onclick="enviarChecklistFim()"><i class="fas fa-check"></i> Enviar Checklist Validado</button>
       </div>
     </div>
-    <button class="back-btn" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
   </div>
 
   <!-- MODAIS DO SISTEMA -->
@@ -850,27 +871,6 @@
     }
     if(currentSlide < 0) { currentSlide = 0; subStep = 0; }
     if(currentSlide >= treinos.length) { exibirAlertaGeral("Você concluiu ou revisou todos os módulos da Trilha do Saber!", "Trilha Finalizada", "fa-trophy", "#FFC107"); mostrar('dashboard'); return; }
-    renderSlide();
-  }
-
-  function mudarSlide(dir) {
-    if(treinos.length === 0) return; var t = treinos[currentSlide];
-    var concluido = isTreinoConcluido(t.titulo);
-
-    if (dir === 1) { 
-        if (concluido) { currentSlide++; subStep = 0; } // Pula as questões se concluído
-        else { if (subStep < t.questoes.length) subStep++; else { currentSlide++; subStep = 0; } }
-    }
-    else { 
-        if (concluido) { currentSlide--; subStep = 0; } // Volta direto pro vídeo anterior
-        else { if (subStep > 0) subStep--; else { currentSlide--; subStep = treinos[currentSlide] ? treinos[currentSlide].questoes.length : 0; } }
-    }
-    
-    if(currentSlide < 0) { currentSlide = 0; subStep = 0; }
-    if(currentSlide >= treinos.length) { 
-        exibirAlertaGeral("Você concluiu ou revisou todos os módulos da Trilha do Saber!", "Trilha Finalizada", "fa-trophy", "#FFC107"); 
-        mostrar('dashboard'); return; 
-    }
     renderSlide();
   }
 
