@@ -88,6 +88,29 @@
  .btn-voltar:hover { background: #616161; box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
  .btn-acao { width: auto; padding: 8px 12px; font-size: 0.9em; margin: 2px; border-radius: 8px; display: inline-block; cursor: pointer; border: none; color: white; font-weight: bold; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
  
+ /* NOVO BOTÃO DE VOLTAR NO TOPO */
+ .btn-voltar-topo {
+     background: #fffaf0;
+     color: #FF9800;
+     border: 1px solid #ffe0b2;
+     padding: 8px 16px;
+     border-radius: 20px;
+     cursor: pointer;
+     font-weight: bold;
+     font-size: 0.9em;
+     margin-bottom: 20px;
+     display: inline-flex;
+     align-items: center;
+     gap: 6px;
+     transition: 0.3s;
+     box-shadow: 0 2px 5px rgba(255,152,0,0.1);
+ }
+ .btn-voltar-topo:hover {
+     background: #FF9800;
+     color: white;
+     transform: translateY(-2px);
+ }
+
  /* ABAS DA AUDITORIA */
  .sub-menu-aud { display: flex; gap: 15px; margin-bottom: 25px; }
  .btn-aud { background: #f5f5f5; color: #616161; border: 2px solid #eeeeee; padding: 14px; font-weight: bold; border-radius: 10px; flex: 1; cursor: pointer; transition:0.3s; font-size: 1em; }
@@ -178,6 +201,7 @@
 
  <!-- CONTABILIZAÇÃO -->
  <div id="sec-caixinha" class="secao">
+  <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
   <h2><i class="fas fa-money-bill-wave" style="color:#ff5722;"></i> Sistema de Contabilização Mensal</h2>
   
   <div style="background:#fafafa; padding:25px; border-radius:16px; border:1px solid #eee; margin-bottom:25px;">
@@ -234,11 +258,11 @@
   </div>
 
   <div id="cx_resultado" style="margin-top:25px; font-size:1.05em; display:none; text-align: left;"></div>
-  <button class="btn-voltar" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
  </div>
 
  <!-- GESTÃO DE ESTAGIÁRIOS -->
  <div id="sec-cadastro-est" class="secao">
+  <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
   <h2><i class="fas fa-users-cog" style="color:#f44336;"></i> Gestão de Estagiários</h2>
   
   <div style="background:#fafafa; padding:30px; border-radius:16px; border:1px solid #eee; margin-bottom:30px;">
@@ -290,11 +314,11 @@
   <div style="overflow-x:auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
     <table id="tabelaEstagiarios"></table>
   </div>
-  <button class="btn-voltar" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
  </div>
  
  <!-- TREINAMENTOS -->
  <div id="sec-treinamento" class="secao">
+  <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
   <h2><i class="fas fa-video"></i> Gerenciar Trilha do Saber</h2>
   
   <div style="background: #fafafa; padding: 30px; border-radius: 16px; margin-bottom: 35px; border: 1px solid #eee;">
@@ -350,12 +374,11 @@
       </table>
     </div>
   </div>
-  
-  <button class="btn-voltar" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
  </div>
  
  <!-- AUDITORIA -->
  <div id="sec-gratificacoes" class="secao" style="max-width: 100%;">
+  <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
   <h2><i class="fas fa-award"></i> Auditoria de Produção Operacional</h2>
   <p style="color:#757575;">Selecione o estagiário para auditar faturamentos e o histórico do checklist.</p>
  
@@ -372,12 +395,11 @@
      <div id="tab-aud-lanc" style="overflow-x:auto;"></div>
      <div id="tab-aud-chk" style="overflow-x:auto; display:none;"></div>
   </div>
- 
-  <button class="btn-voltar" onclick="mostrar('dashboard')" style="margin-top:30px;"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
  </div>
  
  <!-- GUIAS -->
  <div id="sec-guias" class="secao">
+  <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
   <h2><i class="fas fa-book"></i> Guias e Manuais</h2>
  
   <label>Título do Documento:</label>
@@ -392,12 +414,11 @@
     <h3>Acervo Ativo</h3>
     <div id="listaGuiasGestao"><i class="fas fa-spinner fa-spin"></i> Carregando acervo...</div>
   </div>
- 
-  <button class="btn-voltar" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
  </div>
  
  <!-- CHECKLIST -->
  <div id="sec-checklist" class="secao">
+  <button class="btn-voltar-topo" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar</button>
   <h2><i class="fas fa-tasks"></i> Gerenciamento do Checklist</h2>
  
   <div style="background:#fafafa; padding:30px; border-radius:16px; margin-bottom:30px; border:1px solid #eee;">
@@ -428,8 +449,6 @@
     <h3>Tarefas Ativas no Sistema</h3>
     <table id="tabelaChecklistsAtivos"></table>
   </div>
- 
-  <button class="btn-voltar" onclick="mostrar('dashboard')"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button>
  </div>
 
  <!-- MODAIS -->
@@ -521,7 +540,7 @@
   if(id === 'dashboard') { document.getElementById('dashboard').style.display = 'block'; carregarPainelNotificacoesSilencioso(); } 
   else { document.getElementById(id).style.display = 'block'; }
   if(id === 'sec-cadastro-est') carregarListaEstagiarios();
- if(id === 'sec-treinamento') { treinosLimparForm(); carregarTreinosGestao(); carregarBoletimTreinamentos(); }
+  if(id === 'sec-treinamento') { treinosLimparForm(); carregarTreinosGestao(); carregarBoletimTreinamentos(); }
   if(id === 'sec-guias') carregarGuiasGestao();
   if(id === 'sec-checklist') carregarChecklistsAtivos();
  }
