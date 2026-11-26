@@ -53,10 +53,11 @@
 
  /* NOVO BOTÃO DE VOLTAR NO TOPO */
  .btn-voltar-topo {
+     width: auto;
      background: #fffaf0;
      color: #FF9800;
      border: 1px solid #ffe0b2;
-     padding: 8px 16px;
+     padding: 8px 18px;
      border-radius: 20px;
      cursor: pointer;
      font-weight: bold;
@@ -72,6 +73,7 @@
      background: #FF9800;
      color: white;
      transform: translateY(-2px);
+     box-shadow: 0 4px 12px rgba(255,152,0,0.25);
  }
 
  /* CARDS E MENSAGENS */
@@ -265,7 +267,7 @@
       <div class="etapa-form active" id="lig-etapa1">
         <label>Nome do Aluno(a):</label> <input type="text" id="l_nome">
         <label>Matrícula:</label> <input type="text" id="l_mat">
-        <label>Data da Falta:</label> <input type="date" id="l_data_falta">
+        <label>Data da Falta (pode ser de meses anteriores):</label> <input type="date" id="l_data_falta">
         <button class="next-btn" onclick="avancarLigEtapa2()">Avançar para Contato ➔</button>
       </div>
 
@@ -296,7 +298,7 @@
           </select>
 
           <div id="lig_sesson_sim" style="display:none; background:#fffaf0; padding:20px; border-radius:12px; margin:20px 0; border: 1px solid #ffe0b2; border-left: 5px solid #FF9800;">
-            <h4 style="margin-top:0; color:#F57C00;">Previsão de Retorno</h4>
+            <h4 style="margin-top:0; color:#F57C00;">Previsão de Retorno (Dentro do Mês Atual)</h4>
             <label>Data Esperada de Volta:</label> <input type="date" id="l_data_volta">
             <label>Horário pré-estabelecido:</label>
             <select id="l_hora_volta">
@@ -320,7 +322,7 @@
     <div id="sub-cancelamentos" class="sub-secao" style="display:none;">
       <label>Nome do Aluno(a):</label> <input type="text" id="c_nome">
       <label>Matrícula:</label> <input type="text" id="c_mat">
-      <label>Data do Atendimento:</label> <input type="date" id="c_data_atend">
+      <label>Data do Atendimento / Última Frequência:</label> <input type="date" id="c_data_atend">
       
       <label>Meio de Comunicação Usado:</label>
       <div class="btn-group-comunicacao">
@@ -342,7 +344,7 @@
       </select>
 
       <div id="c_sessao_sim" style="display:none; background:#fffaf0; padding:20px; border-radius:12px; margin:20px 0; border: 1px solid #ffe0b2; border-left: 5px solid #FF9800;">
-        <label>Data exata do agendamento:</label>
+        <label>Data exata do agendamento (Dentro do Mês Atual):</label>
         <input type="date" id="c_data_agend">
         <label>Horário agendado:</label>
         <select id="c_hora_agend">
@@ -380,7 +382,7 @@
     <p style="color:#757575; margin: 0 0 25px 0; font-size:1.05em;">Lance o seu mês e a tabela principal será limpa. Acompanhe a aprovação corporativa na aba de Feedbacks abaixo.</p>
     
     <div style="background:#fafafa; padding:20px; border-radius:12px; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px; border: 1px solid #eeeeee;">
-      <div><label>Filtro por Dia (DD/MM/AAAA):</label> <input type="text" id="f_dia" placeholder="Ex: 30/06/2026" oninput="filtrarTabelaRelatoriosLocal()" style="margin:0;"></div>
+      <div><label>Filtro por Dia (DD/MM/AAAA):</label> <input type="text" id="f_dia" placeholder="Ex: 25/11/2026" oninput="filtrarTabelaRelatoriosLocal()" style="margin:0;"></div>
       <div>
         <label>Filtro por Mês:</label>
         <select id="f_mes" onchange="filtrarTabelaRelatoriosLocal()" style="margin:0;">
@@ -491,8 +493,8 @@
 </div>
 
 <script>
-  // IMPORTANTE: COLOQUE A MESMA URL DO SEU WEB APP DO APPS SCRIPT AQUI ABAIXO
-  const API_URL = "https://script.google.com/macros/s/AKfycbwdcq744ksVtwMc9We201cd66m7skqdNeYBiJU-90z7Q5nXj6Cz5sGxBv7jHMk1PEA/exec";
+  // URL DO SEU GOOGLE APPS SCRIPT
+  const API_URL = "https://script.google.com/macros/s/AKfycby224yOORGpwOR5Cck5_1SbFlu0AuJRkDHv2Ff1x8RAuyUTwn-3O_AF1-CflORNVZo/exec";
 
   function chamarAPI(action, payload, onSuccess) {
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: action, payload: payload }) })
@@ -531,8 +533,62 @@
     fecharConfirmacaoGeral(); if(callbackConfirmacaoGeral) callbackConfirmacaoGeral();
   };
 
+  // --- LIMITES E VALIDAÇÕES DE DATAS ---
+  function obterLimitesMesAtual() {
+    var hoje = new Date();
+    var ano = hoje.getFullYear();
+    var mes = hoje.getMonth() + 1;
+    var dia = hoje.getDate();
+    var ultimoDia = new Date(ano, mes, 0).getDate();
+    var mesPad = String(mes).padStart(2, '0');
+    return {
+      ano: ano,
+      mes: mes,
+      mesAnoBR: mesPad + '/' + ano,
+      hojeStr: ano + '-' + mesPad + '-' + String(dia).padStart(2, '0'),
+      fimMesStr: ano + '-' + mesPad + '-' + String(ultimoDia).padStart(2, '0')
+    };
+  }
+
+  function aplicarLimitesCalendario() {
+    var lim = obterLimitesMesAtual();
+    // Faltas e atendimentos aceitam datas antigas (retroativas), só bloqueiam datas futuras
+    ['l_data_falta', 'c_data_atend', 'm_data'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.removeAttribute('min'); el.setAttribute('max', lim.hojeStr); }
+    });
+    // Agendamentos (Reposição e Cancelamento) travados de hoje até o último dia do mês atual
+    ['l_data_volta', 'c_data_agend'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.setAttribute('min', lim.hojeStr); el.setAttribute('max', lim.fimMesStr); }
+    });
+  }
+
+  function validarDatasAgendamentoMesAtual(dataOcorr, agendou, dataAgend, horaAgend) {
+    var lim = obterLimitesMesAtual();
+
+    if (dataOcorr > lim.hojeStr) {
+      return "A data da falta ou última frequência não pode ser uma data futura.";
+    }
+
+    if (agendou === 'Sim') {
+      if (!dataAgend || !horaAgend) {
+        return "Informe a data e o horário do agendamento.";
+      }
+      if (dataAgend < lim.hojeStr) {
+        return "A data do agendamento não pode ser retroativa (anterior a hoje).";
+      }
+      var p = dataAgend.split('-');
+      if (parseInt(p[0], 10) !== lim.ano || parseInt(p[1], 10) !== lim.mes) {
+        return "O agendamento deve ser marcado dentro do mês atual (" + lim.mesAnoBR + ") para contabilização no fechamento.";
+      }
+    }
+    return null;
+  }
+
   window.addEventListener("load", function() {
     localStorage.setItem("sessao_usuario_papel", "Estagiario");
+    aplicarLimitesCalendario();
     
     var urlParams = new URLSearchParams(window.location.search);
     var nomeParam = urlParams.get('nome');
@@ -581,6 +637,7 @@
     document.getElementById('c_sessao_nao').style.display = 'none';
     document.querySelectorAll('#sub-cancelamentos .btn-comunicacao').forEach(function(b) { b.classList.remove('selected'); });
     meioComunicacaoSelecionadoCan = "";
+    aplicarLimitesCalendario();
   }
 
   function carregarPainelAgendaReminders() {
@@ -590,19 +647,19 @@
       lista.sort(function(a, b) {
           var normData = function(d) {
               var s = String(d).split('T')[0];
-              if(s.indexOf('/') > -1) { var p = s.split('/'); if(p[2].length === 4) return p[2] + '-' + p[1] + '-' + p[0]; }
+              if(s.indexOf('/') > -1) { var p = s.split('/'); if(p[2].length === 4) return p[2] + '-' + ("0" + p[1]).slice(-2) + '-' + ("0" + p[0]).slice(-2); }
               return s;
           };
           return (normData(a.expectativaVolta) + " " + (a.horarioVolta || '99:99')).localeCompare(normData(b.expectativaVolta) + " " + (b.horarioVolta || '99:99'));
       });
       conteiner.innerHTML = '';
       lista.forEach(function(card) {
-        var df = String(card.dataFalta); if(df.indexOf('T') > -1) df = df.split('T')[0].split('-').reverse().join('/'); else if(df.indexOf('-') > -1) df = df.split('-').reverse().join('/');
-        var dv = String(card.expectativaVolta); if(dv.indexOf('T') > -1) dv = dv.split('T')[0].split('-').reverse().join('/'); else if(dv.indexOf('-') > -1) dv = dv.split('-').reverse().join('/');
+        var df = formatarParaBR(card.dataFalta);
+        var dv = formatarParaBR(card.expectativaVolta);
         var tagTipo = card.tipoReg === 'Cancelamento' ? '<span style="background:#ffcdd2; color:#c62828; padding:4px 8px; border-radius:6px; font-size:0.8em; margin-left:10px; font-weight:bold;">Cancelamento</span>' : '<span style="background:#ffe0b2; color:#e65100; padding:4px 8px; border-radius:6px; font-size:0.8em; margin-left:10px; font-weight:bold;">Ligação</span>';
-        var alertAtrasado = card.atrasado ? '<div style="background:#FF9800; color:white; padding:8px; border-radius:8px; font-size:0.9em; font-weight:bold; margin-bottom:15px; text-align:center;"><i class="fas fa-exclamation-triangle"></i> Agendamento Atrasado!</div>' : '';
+        var alertAtrasado = card.atrasado ? '<div style="background:#FF9800; color:white; padding:8px; border-radius:8px; font-size:0.9em; font-weight:bold; margin-bottom:15px; text-align:center;"><i class="fas fa-exclamation-triangle"></i> Agendamento de Mês Anterior!</div>' : '';
 
-        conteiner.innerHTML += `<div class="card-agenda">${alertAtrasado}<p style="font-size:1.05em; color:#424242;"><strong><i class="fas fa-user"></i> ${card.aluno}</strong> ${tagTipo}</p><p><i class="fas fa-calendar-times"></i> Ocorrência: ${df}</p><p style="color:#FF9800; font-weight:bold; font-size:1.05em;"><i class="fas fa-clock"></i> Agendado: ${dv} às ${card.horarioVolta}</p><div class="btn-agenda-container"><button class="btn-comp" onclick="marcarPresencaAgenda(this, ${card.indexLinha}, 'Sim')"><i class="fas fa-check"></i> Compareceu</button><button class="btn-ncomp" onclick="marcarPresencaAgenda(this, ${card.indexLinha}, 'Não')"><i class="fas fa-times"></i> Faltou</button></div></div>`;
+        conteiner.innerHTML += `<div class="card-agenda">${alertAtrasado}<p style="font-size:1.05em; color:#424242;"><strong><i class="fas fa-user"></i> ${card.aluno}</strong> ${tagTipo}</p><p><i class="fas fa-calendar-times"></i> Falta/Ocorrência: ${df}</p><p style="color:#FF9800; font-weight:bold; font-size:1.05em;"><i class="fas fa-clock"></i> Agendado: ${dv} às ${card.horarioVolta}</p><div class="btn-agenda-container"><button class="btn-comp" onclick="marcarPresencaAgenda(this, ${card.indexLinha}, 'Sim')"><i class="fas fa-check"></i> Compareceu</button><button class="btn-ncomp" onclick="marcarPresencaAgenda(this, ${card.indexLinha}, 'Não')"><i class="fas fa-times"></i> Faltou</button></div></div>`;
       });
     });
   }
@@ -631,7 +688,11 @@
   }
 
   function avancarLigEtapa2() {
-    if(!document.getElementById('l_nome').value || !document.getElementById('l_mat').value || !document.getElementById('l_data_falta').value) return exibirAlertaGeral("Insira o Nome, a Matrícula e a Data.", "Campos Vazios");
+    var nome = document.getElementById('l_nome').value.trim();
+    var mat = document.getElementById('l_mat').value.trim();
+    var dataFalta = document.getElementById('l_data_falta').value;
+    if(!nome || !mat || !dataFalta) return exibirAlertaGeral("Insira o Nome, a Matrícula e a Data da Falta.", "Campos Vazios");
+    if(dataFalta > obterLimitesMesAtual().hojeStr) return exibirAlertaGeral("A data da falta não pode ser uma data futura.", "Data Inválida");
     document.getElementById('lig-etapa1').classList.remove('active'); document.getElementById('lig-etapa2').classList.add('active');
   }
 
@@ -646,14 +707,22 @@
   function toggleMotivoOutrosLig(val) { document.getElementById('l_campo_outros').style.display = (val === 'Outros (descreva)') ? 'block' : 'none'; }
 
   function enviarFluxoLigacoes() {
+    var dataFalta = document.getElementById('l_data_falta').value;
     var agendou = document.getElementById('l_agendou').value;
     if(!agendou) return exibirAlertaGeral("Selecione se a reposição foi agendada.", "Falta Informação");
-    var motivoFinal = document.getElementById('l_motivo').value; if(motivoFinal === 'Outros (descreva)') motivoFinal = "Outros: " + document.getElementById('l_motivo_outros').value;
+
+    var dataVolta = document.getElementById('l_data_volta').value;
+    var horaVolta = document.getElementById('l_hora_volta').value;
+    var erroData = validarDatasAgendamentoMesAtual(dataFalta, agendou, dataVolta, horaVolta);
+    if (erroData) return exibirAlertaGeral(erroData, "Data Inválida");
+
+    var motivoFinal = document.getElementById('l_motivo').value;
+    if(motivoFinal === 'Outros (descreva)') motivoFinal = "Outros: " + document.getElementById('l_motivo_outros').value;
 
     var dados = {
-      tipo: 'Ligações e Reposições', aluno: document.getElementById('l_nome').value, matricula: document.getElementById('l_mat').value, dataOcorrencia: document.getElementById('l_data_falta').value,
+      tipo: 'Ligações e Reposições', aluno: document.getElementById('l_nome').value.trim(), matricula: document.getElementById('l_mat').value.trim(), dataOcorrencia: dataFalta,
       meioComunicacao: meioComunicacaoSelecionadoLig, motivo: motivoFinal, agendou: agendou,
-      previsaoRetorno: (agendou === 'Sim') ? document.getElementById('l_data_volta').value : 'N/A', horario: (agendou === 'Sim') ? document.getElementById('l_hora_volta').value : 'N/A',
+      previsaoRetorno: (agendou === 'Sim') ? dataVolta : 'N/A', horario: (agendou === 'Sim') ? horaVolta : 'N/A',
       detalhes: (agendou === 'Não') ? document.getElementById('l_motivo_nao').value : 'N/A', estagiario: ESTAGIARIO_LOGADO, compareceu: (agendou === 'Sim') ? 'Pendente' : 'Não se aplica'
     };
 
@@ -672,13 +741,20 @@
   function toggleAgendaCancelamento(val) { document.getElementById('c_sessao_sim').style.display = (val === 'Sim') ? 'block' : 'none'; document.getElementById('c_sessao_nao').style.display = (val === 'Não') ? 'block' : 'none'; }
 
   function enviarFluxoCancelamento() {
-    var nome = document.getElementById('c_nome').value, mat = document.getElementById('c_mat').value, dateAtend = document.getElementById('c_data_atend').value, agendou = document.getElementById('c_agendou').value;
+    var nome = document.getElementById('c_nome').value.trim(), mat = document.getElementById('c_mat').value.trim(), dateAtend = document.getElementById('c_data_atend').value, agendou = document.getElementById('c_agendou').value;
     if(!nome || !mat || !dateAtend || !meioComunicacaoSelecionadoCan || !agendou) return exibirAlertaGeral("Preencha todos os campos do cancelamento.", "Formulário Incompleto");
-    var motivoFinal = document.getElementById('c_motivo').value; if(motivoFinal === 'Outros') motivoFinal = "Outros: " + document.getElementById('c_motivo_outros').value;
+
+    var dataAgend = document.getElementById('c_data_agend').value;
+    var horaAgend = document.getElementById('c_hora_agend').value;
+    var erroData = validarDatasAgendamentoMesAtual(dateAtend, agendou, dataAgend, horaAgend);
+    if (erroData) return exibirAlertaGeral(erroData, "Data Inválida");
+
+    var motivoFinal = document.getElementById('c_motivo').value;
+    if(motivoFinal === 'Outros') motivoFinal = "Outros: " + document.getElementById('c_motivo_outros').value;
 
     var dados = {
       tipo: 'Cancelamento', aluno: nome, matricula: mat, dataOcorrencia: dateAtend, meioComunicacao: meioComunicacaoSelecionadoCan, motivo: motivoFinal, agendou: agendou,
-      previsaoRetorno: (agendou === 'Sim') ? document.getElementById('c_data_agend').value : 'N/A', horario: (agendou === 'Sim') ? document.getElementById('c_hora_agend').value : 'N/A',
+      previsaoRetorno: (agendou === 'Sim') ? dataAgend : 'N/A', horario: (agendou === 'Sim') ? horaAgend : 'N/A',
       detalhes: (agendou === 'Não') ? document.getElementById('c_motivo_nao_agend').value : 'N/A', estagiario: ESTAGIARIO_LOGADO, compareceu: (agendou === 'Sim') ? 'Pendente' : 'Não se aplica'
     };
 
@@ -693,9 +769,12 @@
   }
 
   function enviarFluxoMateriais() {
-    if(!document.getElementById('m_nome').value || !document.getElementById('m_mat').value || !document.getElementById('m_data').value) return exibirAlertaGeral("Preencha todos os campos.", "Falta Informação");
+    var nome = document.getElementById('m_nome').value.trim(), mat = document.getElementById('m_mat').value.trim(), dataMat = document.getElementById('m_data').value;
+    if(!nome || !mat || !dataMat) return exibirAlertaGeral("Preencha todos os campos.", "Falta Informação");
+    if(dataMat > obterLimitesMesAtual().hojeStr) return exibirAlertaGeral("A data de lançamento não pode ser futura.", "Data Inválida");
+
     var dados = {
-      tipo: 'Materiais', aluno: document.getElementById('m_nome').value, matricula: document.getElementById('m_mat').value, dataOcorrencia: document.getElementById('m_data').value,
+      tipo: 'Materiais', aluno: nome, matricula: mat, dataOcorrencia: dataMat,
       meioComunicacao: 'N/A', motivo: 'Entrega/Análise', agendou: 'N/A', previsaoRetorno: 'N/A', horario: 'N/A',
       detalhes: "Próxima agendada para: " + document.getElementById('m_proxima').value, estagiario: ESTAGIARIO_LOGADO, compareceu: 'Não se aplica'
     };
@@ -713,21 +792,43 @@
   }
 
   function solicitarFechamentoMensalOperacional() {
-    var fMes = document.getElementById('f_mes').value; var mesAnoAlvo = ""; var hj = new Date(); var mStr = ("0" + (hj.getMonth() + 1)).slice(-2);
-    mesAnoAlvo = fMes ? fMes.replace(/\//g, "") + "/" + hj.getFullYear() : mStr + "/" + hj.getFullYear();
-    
-    var pendentes = 0;
+    var mesesAbertos = [];
     cacheRelatoriosRaw.forEach(function(row) {
-       var dBase = formatarParaBR(row[4]); var mBase = (dBase && dBase.length === 10) ? dBase.substring(3) : "";
-       if (!row[15] && String(row[7]).trim() === 'Sim' && String(row[12]).trim() === 'Pendente' && mBase === mesAnoAlvo) pendentes++;
+      if (!row[15]) {
+        var dBase = formatarParaBR(row[0]);
+        var mBase = (dBase && dBase.length === 10) ? dBase.substring(3) : "";
+        if (mBase && mesesAbertos.indexOf(mBase) === -1) mesesAbertos.push(mBase);
+      }
     });
 
-    if (pendentes > 0) return exibirAlertaGeral("⚠️ BLOQUEIO: Você tem " + pendentes + " agendamento(s) pendente(s) neste mês. Acesse o 'Painel de Agendamentos' e confirme a presença dos alunos primeiro.", "Pendências Encontradas", "fa-lock", "#f44336");
-    
+    if (mesesAbertos.length === 0) {
+      return exibirAlertaGeral("Não há lançamentos em aberto para fechar no momento.", "Nada Pendente", "fa-info-circle", "#FF9800");
+    }
+
+    // Fecha sempre o mês aberto mais antigo primeiro (ex.: fecha 11/2026 antes de liberar 12/2026)
+    mesesAbertos.sort(function(a, b) {
+      var pa = a.split('/'), pb = b.split('/');
+      return (pa[1] + pa[0]).localeCompare(pb[1] + pb[0]);
+    });
+    var mesAnoAlvo = mesesAbertos[0];
+
+    var pendentes = 0;
+    cacheRelatoriosRaw.forEach(function(row) {
+      var dBase = formatarParaBR(row[0]);
+      var mBase = (dBase && dBase.length === 10) ? dBase.substring(3) : "";
+      if (!row[15] && String(row[7]).trim() === 'Sim' && String(row[12]).trim() === 'Pendente' && mBase === mesAnoAlvo) {
+        pendentes++;
+      }
+    });
+
+    if (pendentes > 0) {
+      return exibirAlertaGeral("⚠️ BLOQUEIO: Você tem " + pendentes + " agendamento(s) pendente(s) no mês " + mesAnoAlvo + ". Acesse o 'Painel de Agendamentos' e confirme a presença dos alunos primeiro.", "Pendências Encontradas", "fa-lock", "#f44336");
+    }
+
     exibirConfirmacaoGeral("Deseja fechar e enviar a produção do período " + mesAnoAlvo + "?", function() {
       chamarAPI('fecharMesEstagiario', { nomeEstagiario: ESTAGIARIO_LOGADO, mesAnoStr: mesAnoAlvo }, function() {
-         exibirAlertaGeral("Mês fechado e enviado com sucesso!", "Envio Concluído", "fa-check-circle", "#4CAF50");
-         abrirRelatoriosEstagiario(); carregarPainelAgendaReminders(); atualizarMinhasMetricas();
+        exibirAlertaGeral("Mês " + mesAnoAlvo + " fechado e enviado com sucesso!", "Envio Concluído", "fa-check-circle", "#4CAF50");
+        abrirRelatoriosEstagiario(); carregarPainelAgendaReminders(); atualizarMinhasMetricas();
       });
     });
   }
@@ -737,23 +838,36 @@
     document.getElementById('tabelaAbertos').innerHTML = "<tr><td colspan='9' style='text-align:center;'><i class='fas fa-spinner fa-spin'></i> Carregando lançamentos...</td></tr>";
     document.getElementById('tabelaFeedbacks').innerHTML = "<tr><td colspan='9' style='text-align:center;'><i class='fas fa-spinner fa-spin'></i> Carregando feedbacks...</td></tr>";
     chamarAPI('carregarRegistros', {}, function(dadosBase) {
-      cacheRelatoriosRaw = dadosBase.filter(function(r) { return r[11] === ESTAGIARIO_LOGADO; });
+      cacheRelatoriosRaw = dadosBase.filter(function(r) { return String(r[11]).trim() === String(ESTAGIARIO_LOGADO).trim(); });
       filtrarTabelaRelatoriosLocal();
     });
   }
 
   function formatarParaBR(dataStr) {
-    if(!dataStr || dataStr === 'N/A') return '-'; var limpa = String(dataStr).split(' ')[0];
+    if(!dataStr || dataStr === 'N/A') return '-';
+    var limpa = String(dataStr).split(' ')[0];
     if(limpa.indexOf('T') > -1) limpa = limpa.split('T')[0];
-    if(limpa.indexOf('-') > -1) { var p = limpa.split('-'); if(p[0].length === 4) return p[2] + '/' + p[1] + '/' + p[0]; }
-    return limpa; 
+    if(limpa.indexOf('-') > -1) {
+      var p = limpa.split('-');
+      if(p[0].length === 4) return ("0" + p[2]).slice(-2) + '/' + ("0" + p[1]).slice(-2) + '/' + p[0];
+    }
+    if(limpa.indexOf('/') > -1) {
+      var p2 = limpa.split('/');
+      if(p2.length === 3) return ("0" + p2[0]).slice(-2) + '/' + ("0" + p2[1]).slice(-2) + '/' + p2[2];
+    }
+    return limpa;
   }
 
   function filtrarTabelaRelatoriosLocal() {
     var fDia = document.getElementById('f_dia').value, fMes = document.getElementById('f_mes').value, fHora = document.getElementById('f_hora').value;
-    var htmlAbertos = '<tr><th>Data</th><th>Aluno</th><th>Matrícula</th><th>Tipo</th><th>Agendado Para</th><th>Horário</th><th>Presença</th><th>Ação</th></tr>';
-    var htmlFechados = '<tr><th>Data</th><th>Aluno</th><th>Tipo</th><th>Status (Presença)</th><th>Retorno Coordenação</th></tr>';
-    var linesFiltradas = cacheRelatoriosRaw.map(function(r) { r.dataBaseBR = formatarParaBR(r[4]); r.dataVoltaBR = formatarParaBR(r[8]); return r; });
+    var htmlAbertos = '<tr><th>Data Registro</th><th>Aluno</th><th>Matrícula</th><th>Tipo</th><th>Agendado Para</th><th>Horário</th><th>Presença</th><th>Ação</th></tr>';
+    var htmlFechados = '<tr><th>Data Registro</th><th>Aluno</th><th>Tipo</th><th>Status (Presença)</th><th>Retorno Coordenação</th></tr>';
+    var linesFiltradas = cacheRelatoriosRaw.map(function(r) {
+      r.dataBaseBR = formatarParaBR(r[0]);
+      r.dataFaltaBR = formatarParaBR(r[4]);
+      r.dataVoltaBR = formatarParaBR(r[8]);
+      return r;
+    });
 
     if (fDia) linesFiltradas = linesFiltradas.filter(function(r) { return r.dataBaseBR.indexOf(fDia) > -1; });
     if (fMes) linesFiltradas = linesFiltradas.filter(function(r) { return r.dataBaseBR.indexOf(fMes) > -1; });
@@ -767,6 +881,7 @@
         else if(statusPresenca === 'Não' || statusPresenca.indexOf('❌') > -1) statusPresenca = '<span style="color:#f44336; font-weight:bold;">❌ Não</span>';
 
         var tipoBadge = '<span style="background:#fffaf0; color:#FF9800; padding:6px 10px; border-radius:6px; font-size:0.85em; font-weight:bold; border: 1px solid #ffe0b2;">' + row[1] + '</span>';
+        var colData = `<strong>${row.dataBaseBR}</strong><br><small style="color:#9e9e9e;">Falta/Ocorr: ${row.dataFaltaBR}</small>`;
 
         if(isFechado) {
             var statusFeedback = row[13] || 'Pendente';
@@ -774,11 +889,11 @@
             else if(statusFeedback.indexOf('Faturado') > -1 && statusFeedback !== 'Não Faturado') statusFeedback = '<span style="color:#388E3C; font-weight:bold;"><i class="fas fa-check-double"></i> Aprovado</span>';
             else if(statusFeedback === 'Não Faturado') statusFeedback = '<span style="color:#d32f2f; font-weight:bold;"><i class="fas fa-times-circle"></i> Rejeitado</span>';
 
-            htmlFechados += `<tr><td>${row.dataBaseBR}</td><td><strong>${row[2]}</strong></td><td>${tipoBadge}</td><td>${statusPresenca}</td><td>${statusFeedback}</td></tr>`;
+            htmlFechados += `<tr><td>${colData}</td><td><strong>${row[2]}</strong></td><td>${tipoBadge}</td><td>${statusPresenca}</td><td>${statusFeedback}</td></tr>`;
             temFechado = true;
         } else {
             var hor = (String(row[9]) === 'N/A' || !row[9]) ? '-' : String(row[9]);
-            htmlAbertos += `<tr><td>${row.dataBaseBR}</td><td><strong>${row[2]}</strong></td><td>${row[3]}</td><td>${tipoBadge}</td><td>${row.dataVoltaBR}</td><td>${hor}</td><td>${statusPresenca}</td><td style="text-align:center;"><button onclick="deletarRegistroRelatorio(${row[14]})" style="background:#f44336; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; transition:0.2s;"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+            htmlAbertos += `<tr><td>${colData}</td><td><strong>${row[2]}</strong></td><td>${row[3]}</td><td>${tipoBadge}</td><td>${row.dataVoltaBR}</td><td>${hor}</td><td>${statusPresenca}</td><td style="text-align:center;"><button onclick="deletarRegistroRelatorio(${row[14]})" style="background:#f44336; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; transition:0.2s;"><i class="fas fa-trash-alt"></i></button></td></tr>`;
             temAberto = true;
         }
     });
@@ -788,7 +903,7 @@
     document.getElementById('tabelaAbertos').innerHTML = htmlAbertos; document.getElementById('tabelaFeedbacks').innerHTML = htmlFechados;
   }
 
-// --- SISTEMA LMS AVANÇADO (TRILHA DO SABER) ---
+  // --- SISTEMA LMS AVANÇADO (TRILHA DO SABER) ---
   var treinos = []; var currentSlide = 0; var subStep = 0; 
   var acertosModulo = 0; var treinosFeitosBackend = [];
 
@@ -855,10 +970,9 @@
   }
 
   function salvarNota(acertos, total, titulo) {
+      if (treinosFeitosBackend.indexOf(titulo) === -1) treinosFeitosBackend.push(titulo);
       var notaCalc = (total > 0) ? ((acertos / total) * 10).toFixed(1) : "10.0";
-      chamarAPI('salvarResultadoTreinamento', { obj: { estagiario: ESTAGIARIO_LOGADO, modulo: titulo, nota: notaCalc, acertos: acertos, total: total } }, function() {
-          treinosFeitosBackend.push(titulo);
-      });
+      chamarAPI('salvarResultadoTreinamento', { obj: { estagiario: ESTAGIARIO_LOGADO, modulo: titulo, nota: notaCalc, acertos: acertos, total: total } });
   }
 
   function mudarSlide(dir) {
@@ -919,7 +1033,7 @@
   function enviarChecklistFim() {
     var total = document.querySelectorAll('#tabelaChecklistEst tr td.chk-pergunta-texto').length;
     if(document.querySelectorAll('#tabelaChecklistEst input[type="radio"]:checked').length < total) return exibirAlertaGeral("Responda a todas as tarefas da rotina antes do envio corporativo.", "Formulário Incompleto");
-    if(document.getElementById('senhaSup').value !== '25021971') return exibirAlertaGeral("Credencial de Supervisor Incorreta!", "Validação Negada", "fa-ban", "#f44336");
+    if(document.getElementById('senhaSup').value.trim() !== '25021971') return exibirAlertaGeral("Credencial de Supervisor Incorreta!", "Validação Negada", "fa-ban", "#f44336");
     
     var validos = 0, totalSim = 0, totalNao = 0, totalAusente = 0, itensNaoFeitos = [];
     document.querySelectorAll('#tabelaChecklistEst td.chk-pergunta-texto').forEach(function(perg, i) {
