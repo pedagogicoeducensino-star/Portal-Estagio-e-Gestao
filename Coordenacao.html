@@ -90,10 +90,11 @@
  
  /* NOVO BOTÃO DE VOLTAR NO TOPO */
  .btn-voltar-topo {
+     width: auto;
      background: #fffaf0;
      color: #FF9800;
      border: 1px solid #ffe0b2;
-     padding: 8px 16px;
+     padding: 8px 18px;
      border-radius: 20px;
      cursor: pointer;
      font-weight: bold;
@@ -109,6 +110,7 @@
      background: #FF9800;
      color: white;
      transform: translateY(-2px);
+     box-shadow: 0 4px 12px rgba(255,152,0,0.25);
  }
 
  /* ABAS DA AUDITORIA */
@@ -208,7 +210,7 @@
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: end;">
          <div style="display: flex; flex-direction: column;">
              <label>Mês Alvo (MM/AAAA):</label>
-             <input type="text" id="cx_mes_ref" placeholder="Ex: 06/2026" style="margin:0;">
+             <input type="text" id="cx_mes_ref" placeholder="Ex: 11/2026" style="margin:0;">
          </div>
          <div style="display: flex; flex-direction: column;">
              <label>Perfil Operacional:</label>
@@ -485,7 +487,7 @@
  
 <script>
  // URL DO SEU GOOGLE APPS SCRIPT
- const API_URL = "https://script.google.com/macros/s/AKfycbwdcq744ksVtwMc9We201cd66m7skqdNeYBiJU-90z7Q5nXj6Cz5sGxBv7jHMk1PEA/exec";
+ const API_URL = "https://script.google.com/macros/s/AKfycby224yOORGpwOR5Cck5_1SbFlu0AuJRkDHv2Ff1x8RAuyUTwn-3O_AF1-CflORNVZo/exec";
 
  function chamarAPI(action, payload, onSuccess) {
    fetch(API_URL, {
@@ -545,6 +547,35 @@
   if(id === 'sec-checklist') carregarChecklistsAtivos();
  }
 
+ // --- FUNÇÕES AUXILIARES DE DATA ---
+ function extrairMesAno(dataStr) {
+    if(!dataStr) return "";
+    var limpa = String(dataStr).split(' ')[0]; 
+    if(limpa.indexOf('/') > -1) {
+        var p = limpa.split('/');
+        if(p.length >= 3) return ("0" + p[1]).slice(-2) + '/' + p[2];
+    } else if(limpa.indexOf('-') > -1) {
+        var p2 = limpa.split('T')[0].split('-');
+        if(p2.length >= 2) return ("0" + p2[1]).slice(-2) + '/' + p2[0];
+    }
+    return limpa;
+ }
+
+ function formatarDataBR(dataStr) {
+    if(!dataStr || dataStr === 'N/A') return '-';
+    var limpa = String(dataStr).split(' ')[0];
+    if(limpa.indexOf('T') > -1) limpa = limpa.split('T')[0];
+    if(limpa.indexOf('-') > -1) {
+        var p = limpa.split('-');
+        if(p[0].length === 4) return ("0" + p[2]).slice(-2) + '/' + ("0" + p[1]).slice(-2) + '/' + p[0];
+    }
+    if(limpa.indexOf('/') > -1) {
+        var p2 = limpa.split('/');
+        if(p2.length === 3) return ("0" + p2[0]).slice(-2) + '/' + ("0" + p2[1]).slice(-2) + '/' + p2[2];
+    }
+    return limpa;
+ }
+
  // --- CONTABILIZAÇÃO ---
  function toggleCaixinhaPerfil() {
     var p = document.getElementById('cx_perfil').value;
@@ -558,14 +589,6 @@
             ests.forEach(function(e) { sel.innerHTML += '<option value="'+e.nome+'">'+e.nome+'</option>'; });
         });
     }
- }
-
- function extrairMesAno(dataStr) {
-    if(!dataStr) return "";
-    var limpa = String(dataStr).split(' ')[0]; 
-    if(limpa.indexOf('/') > -1) { var p = limpa.split('/'); if(p.length >= 3) return p[1] + '/' + p[2]; } 
-    else if(limpa.indexOf('-') > -1) { var p = limpa.split('T')[0].split('-'); if(p.length >= 2) return p[1] + '/' + p[0]; }
-    return limpa;
  }
 
  function calcularOcupacaoInterpolada(ocupacao, tabela) {
@@ -594,8 +617,9 @@
     chamarAPI('carregarDadosAuditoria', { nomeEstagiario: nome }, function(dados) {
         var ligacoesAprovadas = 0, cancelamentosAprovados = 0;
         dados.registros.forEach(function(r) {
-            var mesOcorr = extrairMesAno(String(r[4]));
-            if(mesOcorr !== mesRef) return;
+            // Contabiliza sempre pelo mês da Data do Registro (Coluna A), permitindo faltas retroativas
+            var mesReg = extrairMesAno(String(r[0]));
+            if(mesReg !== mesRef) return;
             var tipo = r[1], compareceu = r[12];
             if(compareceu === 'Sim' || compareceu === '✅ Compareceu' || compareceu === '✅ Sim') {
                 if(tipo === 'Ligações e Reposições') ligacoesAprovadas++;
@@ -652,8 +676,9 @@
     chamarAPI('carregarRegistros', {}, function(todosRegistros) {
         var ligacoesEquipe = 0;
         todosRegistros.forEach(function(r) {
-            var mesOcorr = extrairMesAno(String(r[4]));
-            if(mesOcorr !== mesRef) return;
+            // Contabiliza sempre pelo mês da Data do Registro (Coluna A)
+            var mesReg = extrairMesAno(String(r[0]));
+            if(mesReg !== mesRef) return;
             var tipo = r[1], compareceu = r[12];
             if((compareceu === 'Sim' || compareceu === '✅ Compareceu' || compareceu === '✅ Sim') && tipo === 'Ligações e Reposições') { ligacoesEquipe++; }
         });
@@ -954,8 +979,12 @@
   document.getElementById('caixasEstagiarios').innerHTML = "<i class='fas fa-spinner fa-spin'></i> Gerando indicadores...";
  
   chamarAPI('carregarMetricasCoordenacao', {}, function(metricas) {
-    var htmlCards = '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:25px; margin-top:20px;">';
     var nomes = Object.keys(metricas);
+    if(nomes.length === 0) {
+      document.getElementById('caixasEstagiarios').innerHTML = "<p style='color:#757575; padding:20px; background:#fafafa; border-radius:12px; border:1px solid #eee;'>Nenhum fechamento mensal enviado pelos estagiários ainda.</p>";
+      return;
+    }
+    var htmlCards = '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:25px; margin-top:20px;">';
     nomes.forEach(function(nome) {
       var mObj = metricas[nome].meses; var resumoMesesText = ""; var mChaves = Object.keys(mObj);
       if(mChaves.length === 0) { resumoMesesText = "<small style='color:#9e9e9e;'>Sem produção homologada.</small>"; } 
@@ -996,19 +1025,23 @@
   mostrarTabAud('lanc');
  
   chamarAPI('carregarDadosAuditoria', { nomeEstagiario: nomeEstagiario }, function(dados) {
-    var htmlLanc = '<table><tr><th>Ocorrência</th><th>Tipo</th><th>Aluno</th><th>Agendamento</th><th>Status</th><th>Faturamento</th></tr>';
+    var htmlLanc = '<table><tr><th>Registro / Ocorrência</th><th>Tipo</th><th>Aluno</th><th>Agendamento</th><th>Status</th><th>Faturamento</th></tr>';
     var itensRenderizados = 0;
     dados.registros.reverse().forEach(function(l) {
       var faturamentoAtual = l[13] || "Pendente";
       if (faturamentoAtual === 'Faturado' || faturamentoAtual === 'Não Faturado') { return; }
 
-      var dataOcorr = l[4]; if(dataOcorr && typeof dataOcorr === 'string' && dataOcorr.indexOf('T') > -1) { dataOcorr = dataOcorr.split('T')[0].split('-').reverse().join('/'); }
+      var dataReg = formatarDataBR(l[0]);
+      var dataOcorr = formatarDataBR(l[4]);
+      var colData = `<strong>${dataReg}</strong><br><small style="color:#9e9e9e;">Falta/Ocorr: ${dataOcorr}</small>`;
+
       var badgeTipo = `<span style="background:#fff3e0; padding:4px 8px; border-radius:6px; font-weight:bold; font-size:0.85em; color:#FF9800; border: 1px solid #ffe0b2;">${l[1]}</span>`;
       if(l[1] === 'Cancelamento') badgeTipo = `<span style="background:#ffebee; padding:4px 8px; border-radius:6px; font-weight:bold; font-size:0.85em; color:#f44336; border: 1px solid #ffcdd2;">${l[1]}</span>`;
       else if(l[1] === 'Materiais' || l[1] === 'Materials') badgeTipo = `<span style="background:#f5f5f5; padding:4px 8px; border-radius:6px; font-weight:bold; font-size:0.85em; color:#616161; border: 1px solid #e0e0e0;">Materiais</span>`;
 
       var agendouVal = l[7];
-      var retornoStr = (agendouVal === 'Sim') ? `<span style="color:#4CAF50; font-weight:bold;">Para ${l[8]} às ${l[9]}</span>` : `<span style="color:#f44336;">Não Agendou</span>`;
+      var dataAgendBR = formatarDataBR(l[8]);
+      var retornoStr = (agendouVal === 'Sim') ? `<span style="color:#4CAF50; font-weight:bold;">Para ${dataAgendBR} às ${l[9]}</span>` : `<span style="color:#f44336;">Não Agendou</span>`;
       var statusBadge = l[12];
       if(statusBadge === 'Pendente') statusBadge = '⏳ Pendente';
       else if(statusBadge === 'Sim' || statusBadge === '✅ Compareceu' || statusBadge === '✅ Sim') statusBadge = '✅ Compareceu';
@@ -1025,7 +1058,7 @@
         <option value="Não Faturado" ${faturamentoAtual === 'Não Faturado' ? 'selected' : ''}>Rejeitado</option>
       </select>`;
 
-      htmlLanc += `<tr><td>${dataOcorr}</td><td>${badgeTipo}</td><td><strong>${l[2]}</strong><br><small style="color:#9e9e9e;">Mat: ${l[3]}</small></td><td>${retornoStr}</td><td><strong>${statusBadge}</strong></td><td>${selectFat}</td></tr>`;
+      htmlLanc += `<tr><td>${colData}</td><td>${badgeTipo}</td><td><strong>${l[2]}</strong><br><small style="color:#9e9e9e;">Mat: ${l[3]}</small></td><td>${retornoStr}</td><td><strong>${statusBadge}</strong></td><td>${selectFat}</td></tr>`;
       itensRenderizados++;
     });
 
