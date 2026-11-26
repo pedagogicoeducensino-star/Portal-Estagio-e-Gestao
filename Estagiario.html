@@ -1014,7 +1014,7 @@
     var html = '<tr><th>ATIVIDADES PARA DESENVOLVER</th><th style="width:260px;">RESPOSTA</th></tr>';
     var secaoAtual = '', subsecaoAtual = '';
     perguntas.forEach(function(p, i) {
-      if(p.secao !== secaoAtual) { html += `<tr><td colspan="2" style="background: linear-gradient(135deg, #424242, #212121); color:#FFC107; font-weight:bold; padding:15px; font-size:1.1em;">${p.secao}</td></tr>`; secaoAtual = p.secao; subsecaoAtual = ''; }
+      if(p.secao !== secaoAtual) { html += `<tr><td colspan="2" style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); color:#e65100; font-weight:800; padding:14px 16px; font-size:1.05em; border-left:5px solid #FF9800;">${p.secao}</td></tr>`; secaoAtual = p.secao; subsecaoAtual = ''; }
       if(p.subsecao !== subsecaoAtual) { html += `<tr><td colspan="2" class="header-subsecao">Área: ${p.subsecao}</td></tr>`; subsecaoAtual = p.subsecao; }
       html += `<tr><td class="chk-pergunta-texto" style="padding-left:25px; font-size:1.05em;">• ${p.pergunta}</td><td><div class="chk-options-row"><label><input type="radio" name="chk_${i}" value="Sim" onchange="calcularFatorProgresso()"> Sim</label><label><input type="radio" name="chk_${i}" value="Não" onchange="calcularFatorProgresso()"> Não</label><label><input type="radio" name="chk_${i}" value="Ausente" onchange="calcularFatorProgresso()"> Ausente</label></div></td></tr>`;
     });
