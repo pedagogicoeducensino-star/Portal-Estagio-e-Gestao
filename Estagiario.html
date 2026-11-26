@@ -919,7 +919,7 @@
   function enviarChecklistFim() {
     var total = document.querySelectorAll('#tabelaChecklistEst tr td.chk-pergunta-texto').length;
     if(document.querySelectorAll('#tabelaChecklistEst input[type="radio"]:checked').length < total) return exibirAlertaGeral("Responda a todas as tarefas da rotina antes do envio corporativo.", "Formulário Incompleto");
-    if(document.getElementById('senhaSup').value !== '987654') return exibirAlertaGeral("Credencial de Supervisor Incorreta!", "Validação Negada", "fa-ban", "#f44336");
+    if(document.getElementById('senhaSup').value !== '25021971') return exibirAlertaGeral("Credencial de Supervisor Incorreta!", "Validação Negada", "fa-ban", "#f44336");
     
     var validos = 0, totalSim = 0, totalNao = 0, totalAusente = 0, itensNaoFeitos = [];
     document.querySelectorAll('#tabelaChecklistEst td.chk-pergunta-texto').forEach(function(perg, i) {
